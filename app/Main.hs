@@ -6,7 +6,7 @@ import Graphics.Gloss.Interface.Pure.Game
 
 
 window :: Display
-window = InWindow "Asteroids" (width, height) (offsetX, offsetY)
+window = InWindow "ASTEROID BATTLE by Team Stolyarov" (width, height) (offsetX, offsetY)
 
 background :: Color
 background = dark (dark blue)
@@ -23,9 +23,7 @@ drawingShip game = pictures[
 	polygon [(-10, -5), (0, 0), (0, 20)]]
 	where
 		(x, y) = shipLoc game
-		(xv, yv) = shipVel game
 		phi = shipAng game
-		--phi = (atan2 xv yv) * 180 / pi
 
 drawing :: Picture
 drawing = render initialState
