@@ -1,38 +1,15 @@
 module Main where
 
-import Lib
+import Types
 import Graphics.Gloss
-import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game
---import Graphics.Gloss.Interface.IO.Game
 
-type Radius = Float
-type Position = (Float, Float)
-type Degree = Float
-
-width :: Int
-width = 700
-
-height :: Int
-height = 500
-
-offsetX :: Int
-offsetX = 500
-
-offsetY :: Int
-offsetY = 250
-
-fps :: Int
-fps = 60
 
 window :: Display
 window = InWindow "Asteroids" (width, height) (offsetX, offsetY)
 
 background :: Color
-background = makeColorI 75 75 186 0
-
-shipColor :: Color
-shipColor = black
+background = dark (dark blue)
 
 drawingShip :: GameState -> Picture
 drawingShip game = pictures[
@@ -50,18 +27,9 @@ drawingShip game = pictures[
 		phi = shipAng game
 		--phi = (atan2 xv yv) * 180 / pi
 
---drawing :: Picture
---drawing = pictures[
---	drawingShip]
 drawing :: Picture
 drawing = render initialState
 
-
-data GameState = Game {
-	shipLoc :: Position,
-	shipAng :: Float,
-	shipVel :: (Float, Float)
-} deriving Show
 
 render :: GameState -> Picture
 render game = pictures [(drawingShip game)]
@@ -70,14 +38,16 @@ initialState :: GameState
 initialState = Game {
 	shipLoc = (0, -100),
 	shipAng = 0,
-	shipVel = (0, 0)
+	shipVel = (0, 0),
+	bullets = []
 }
 
 deathState :: GameState
 deathState = Game {
 	shipLoc = (0, 0),
 	shipAng = 0,
-	shipVel = (0, 0)
+	shipVel = (0, 0),
+	bullets = []
 }
 
 moveShip :: Float -> GameState -> GameState
@@ -88,10 +58,11 @@ moveShip sec game = if vx == 0 && vy == 0
     (x, y) = shipLoc game
     (vx, vy) = shipVel game
     x1 = x + vx * sec
-    y1 = y + vy * sec 
+    y1 = y + vy * sec
 
-frame :: Float -> Picture
-frame seconds = render $ moveShip seconds initialState
+--moveBullets :: Float -> GameState -> GameState
+--moveBullets sec game = map (\bull -> bull {bulLoc = ((fst (bulLoc bull)) + 100 * sec, (snd (bulLoc bull)) + 100 * sec)} 
+	 
 
 update :: Float -> GameState -> GameState
 update seconds = wallDeath . moveShip seconds
