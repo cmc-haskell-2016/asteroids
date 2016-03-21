@@ -9,6 +9,7 @@ type Radius = Float
 type Position = (Float, Float)
 type Degree = Float
 type Speed = (Float, Float)
+type Time = Float
 
 --------------------------------------------
 -- Constants
@@ -34,14 +35,25 @@ bulletSpeed = 100
 shipColor :: Color
 shipColor = light (light red)
 
-data GameState = Game {
+data GameState = Game Ship [Asteroid] [Bullet]
+
+data Ship = Ship {
 	shipLoc :: Position,
-	shipAng :: Float,
-	shipVel :: (Float, Float),
-	bullets :: [BulletState]
+	shipVel :: Speed,
+	shipAng :: Degree,
+	shipAlive :: Bool
 } deriving Show
 
-data BulletState = Bullet {
-	bulLoc :: Position,
-	bullAng :: Float
+data Asteroid = Asteroid {
+	astLoc :: Position,
+	astAng :: Degree,
+	astSize :: Radius,
+	astAlive :: Bool
 } deriving Show
+
+data Bullet = Bullet {
+	bulLoc :: Position,
+	bulAng :: Degree,
+	bulAlive :: Bool
+} deriving Show
+
