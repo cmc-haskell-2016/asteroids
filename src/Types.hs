@@ -24,36 +24,40 @@ offsetX :: Int
 offsetX = 500
 
 offsetY :: Int
-offsetY = 250
+offsetY = 100
+
+background :: Color
+background = makeColorI 25 25 112 0
 
 fps :: Int
 fps = 60
 
-bulletSpeed :: Int
+bulletSpeed :: Float
 bulletSpeed = 100
 
 shipColor :: Color
 shipColor = light (light red)
 
-data GameState = Game Ship [Asteroid] [Bullet]
+data GameState = Game Ship [Asteroid] [Bullet] deriving (Show, Eq)
 
 data Ship = Ship {
 	shipLoc :: Position,
 	shipVel :: Speed,
 	shipAng :: Degree,
 	shipAlive :: Bool
-} deriving Show
+} deriving (Show, Eq)
 
 data Asteroid = Asteroid {
 	astLoc :: Position,
 	astAng :: Degree,
 	astSize :: Radius,
 	astAlive :: Bool
-} deriving Show
+} deriving (Show, Eq)
 
 data Bullet = Bullet {
 	bulLoc :: Position,
 	bulAng :: Degree,
+	bulVel :: Speed,
 	bulAlive :: Bool
-} deriving Show
+} deriving (Show, Eq) 
 
