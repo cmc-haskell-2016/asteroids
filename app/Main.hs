@@ -171,13 +171,10 @@ handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game s a b) = Game s a ((B
 	 where 
 	 	(x, y) = shipLoc s
 	 	ang = shipAng s
-	 	(xv, yv) = shipVel s
-	 	norm = sqrt (xv * xv + yv * yv)
-	 	vel = (xv /norm * bulletSpeed, yv /norm * bulletSpeed)
-	 	yang = cos ((shipAng s) * pi / 180)
-	 	xang = sin ((shipAng s) * pi / 180)
-	 	normang = sqrt (xang * xang + yang * yang)
-	 	velang = (xang /normang * bulletSpeed, yang /normang * bulletSpeed)
+	 	yvel = cos ((shipAng s) * pi / 180)
+	 	xvel = sin ((shipAng s) * pi / 180)
+	 	norm = sqrt (xvel * xvel + yvel * yvel)
+	 	velang = (xvel /norm * bulletSpeed, yvel /norm * bulletSpeed)
 handleKeys _ game = game 
 	
 
