@@ -54,7 +54,7 @@ drawingBullet bull =
 	if bulAlive bull then 
 		translate x y $
 		color red $
-		thickCircle 3 3
+		thickCircle 3 4
 	else blank
 	where
 		(x, y) = bulLoc bull
@@ -159,14 +159,22 @@ handleKeys (EventKey (Char 's') Up _ _) (Game s a b) = Game (s {shipVel = (xv, y
 	where (xv, yv) = shipVel s
 handleKeys (EventKey (Char 'd') Up _ _) (Game s a b) = Game (s {shipVel = (xv - 50, yv)}) a b 
 	where (xv, yv) = shipVel s
---handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (s a b) = s {shipVel = (xv, yv + 50)} where (xv, yv) = shipVel s
---handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (s a b) = s {shipVel = (xv - 50, yv)} where (xv, yv) = shipVel s
---handleKeys (EventKey (SpecialKey KeyDown) Down _ _) (s a b) = s {shipVel = (xv, yv - 50)} where (xv, yv) = shipVel s
---handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (s a b) = s {shipVel = (xv + 50, yv)} where (xv, yv) = shipVel s
---handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (s a b) = s {shipVel = (xv, yv - 50)} where (xv, yv) = shipVel s
---handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (s a b) = s {shipVel = (xv + 50, yv)} where (xv, yv) = shipVel s
---handleKeys (EventKey (SpecialKey KeyDown) Up _ _) (s a b) = game {shipVel = (xv, yv + 50)} where (xv, yv) = shipVel s
---handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (s a b) = game {shipVel = (xv - 50, yv)} where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game s a b) = Game (s {shipVel = (xv, yv + 50)})a b 
+	where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game s a b) = Game (s {shipVel = (xv - 50, yv)}) a b
+	where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyDown) Down _ _) (Game s a b) = Game (s {shipVel = (xv, yv - 50)}) a b
+	where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game s a b) = Game (s {shipVel = (xv + 50, yv)}) a b
+	where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game s a b) = Game (s {shipVel = (xv, yv - 50)}) a b
+	where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game s a b) = Game (s {shipVel = (xv + 50, yv)}) a b
+	where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyDown) Up _ _) (Game s a b) = Game (s {shipVel = (xv, yv + 50)}) a b 
+	where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (Game s a b) = Game (s {shipVel = (xv - 50, yv)}) a b
+	where (xv, yv) = shipVel s
 handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game s a b) = Game s a ((Bullet {bulLoc = (x, y), bulAng = ang, bulAlive = True, bulVel = velang}) : b)
 	 where 
 	 	(x, y) = shipLoc s
