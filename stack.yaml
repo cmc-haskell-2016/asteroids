@@ -7,9 +7,8 @@ resolver: lts-5.5
 # Local packages, usually specified by relative directory name
 packages:
 - '.'
-
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: 
+extra-deps:
 - gloss-1.9.4.1
 - gloss-rendering-1.9.3.1
 - GLUT-2.7.0.2
@@ -22,7 +21,7 @@ extra-deps:
 flags: {}
 
 # Extra package databases containing global packages
-extra-package-dbs: []	
+extra-package-dbs: []
 
 # Control whether we use the GHC we find on the path
 # system-ghc: true
