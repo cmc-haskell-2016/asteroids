@@ -3,12 +3,13 @@ module Types where
 import Graphics.Gloss
 
 ---------------------------------------------
---Types 
+--Types
 
 type Radius = Float
 type Position = (Float, Float)
 type Degree = Float
 type Speed = (Float, Float)
+type ShipSpeed = Float
 type Time = Float
 
 --------------------------------------------
@@ -42,8 +43,9 @@ data GameState = Game Ship [Asteroid] [Bullet] deriving (Show, Eq)
 
 data Ship = Ship {
 	shipLoc :: Position,
-	shipVel :: Speed,
+	shipVel :: ShipSpeed,
 	shipAng :: Degree,
+	rotation :: Degree,
 	shipAlive :: Bool
 } deriving (Show, Eq)
 
@@ -59,5 +61,5 @@ data Bullet = Bullet {
 	bulAng :: Degree,
 	bulVel :: Speed,
 	bulAlive :: Bool
-} deriving (Show, Eq) 
+} deriving (Show, Eq)
 
