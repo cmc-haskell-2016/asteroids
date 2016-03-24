@@ -3,13 +3,14 @@ module Types where
 import Graphics.Gloss
 
 ---------------------------------------------
---Types 
+--Types
 
 type Radius = Float
 type Position = (Float, Float)
 type Degree = Float
 type Speed = (Float, Float)
 type Time = Float
+type Step = Int
 
 --------------------------------------------
 -- Constants
@@ -32,13 +33,14 @@ background = makeColorI 25 25 112 0
 fps :: Int
 fps = 60
 
+
 bulletSpeed :: Float
 bulletSpeed = 100
 
 shipColor :: Color
 shipColor = light (light red)
 
-data GameState = Game Ship [Asteroid] [Bullet] deriving (Show, Eq)
+data GameState = Game Step Ship [Asteroid] [Bullet] deriving (Show, Eq)
 
 data Ship = Ship {
 	shipLoc :: Position,
@@ -51,7 +53,8 @@ data Asteroid = Asteroid {
 	astLoc :: Position,
 	astAng :: Degree,
 	astSize :: Radius,
-	astAlive :: Bool
+	astAlive :: Bool,
+	astVel :: Speed
 } deriving (Show, Eq)
 
 data Bullet = Bullet {
@@ -59,5 +62,5 @@ data Bullet = Bullet {
 	bulAng :: Degree,
 	bulVel :: Speed,
 	bulAlive :: Bool
-} deriving (Show, Eq) 
+} deriving (Show, Eq)
 

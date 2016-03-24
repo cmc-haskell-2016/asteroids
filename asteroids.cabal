@@ -28,6 +28,8 @@ executable asteroids
   build-depends:       base
                      , asteroids
                      , gloss
+                     , gloss-rendering
+                     , random
   default-language:    Haskell2010
 
 test-suite asteroids-test
