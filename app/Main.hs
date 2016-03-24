@@ -44,9 +44,11 @@ drawingShip ship = if shipAlive ship
 
 drawingAteroid :: Asteroid -> Picture
 drawingAteroid ast =
-	translate x y $
-	color black $
-	circleSolid rad
+	if astAlive ast then
+		translate x y $
+		color black $
+		circleSolid rad
+	else blank
 	where
 		(x, y) = astLoc ast
 		rad = astSize ast
