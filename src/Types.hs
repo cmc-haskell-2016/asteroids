@@ -9,6 +9,7 @@ type Radius = Float
 type Position = (Float, Float)
 type Degree = Float
 type Speed = (Float, Float)
+type ShipSpeed = Float
 type Time = Float
 type Step = Int
 
@@ -44,8 +45,9 @@ data GameState = Game Step Ship [Asteroid] [Bullet] deriving (Show, Eq)
 
 data Ship = Ship {
 	shipLoc :: Position,
-	shipVel :: Speed,
+	shipVel :: ShipSpeed,
 	shipAng :: Degree,
+	rotation :: Degree,
 	shipAlive :: Bool
 } deriving (Show, Eq)
 

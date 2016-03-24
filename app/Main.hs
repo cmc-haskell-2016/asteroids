@@ -50,11 +50,6 @@ drawingAteroid ast =
 	where
 		(x, y) = astLoc ast
 		rad = astSize ast
-{-
-drawingSpace :: Picture
-drawingSpace = do
-	let p <- loadBMP "space.bmp"
--}
 
 drawingBullet :: Bullet -> Picture
 drawingBullet bull =
@@ -68,9 +63,10 @@ drawingBullet bull =
 
 initialShip :: Ship
 initialShip = Ship {
-	shipLoc = (0, -100),
+	shipLoc = (0, 0),
 	shipAng = 0,
-	shipVel = (0, 0),
+	rotation = 0,
+	shipVel = 0,
 	shipAlive = True
 }
 
@@ -78,7 +74,8 @@ deathShip :: Ship
 deathShip = Ship {
 	shipLoc = (0, 0),
 	shipAng = 0,
-	shipVel = (0, 0),
+	rotation = 0,
+	shipVel = 0,
 	shipAlive = False
 }
 
@@ -113,19 +110,16 @@ addAsteroid (Game 180 s ast b) = Game 180 s (a : ast) b
 addAsteroid game = game
 
 
-moveShip :: Time -> GameState -> GameState
-moveShip sec (Game t s a b) = if (not (shipAlive s))
-					then deathState
-					else if vx == 0 && vy == 0
-					then Game t s a b
-					else if (wallCollision (x, y) 20)
-						then deathState
-						else Game t (s {shipLoc = (x1, y1), shipAng = (atan2 vx vy) * 180 / pi}) a b
-						where
-						(x, y) = shipLoc s
-						(vx, vy) = shipVel s
-						x1 = x + vx * sec
-						y1 = y + vy * sec
+moveShip :: Float -> GameState -> GameState
+moveShip sec (Game t s a b) = if ((not (shipAlive s)) || (wallCollision (x, y) 20))
+								then deathState
+							else Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
+	where
+	(x, y) = shipLoc s
+	v = shipVel s
+	newAng = (shipAng s) + (rotation s)
+	x1 = x + v* (sin (newAng*pi/180)) * sec
+	y1 = y + v* (cos (newAng*pi/180)) * sec
 
 moveBullets :: Time -> GameState -> GameState
 moveBullets sec (Game t s a b) =Game t s a (map (moveBull sec) b)
@@ -177,49 +171,21 @@ yCollision (_, y) rad = (y + rad >= fromIntegral height/2) || (y - rad <= -fromI
 --wallDeath :: GameState -> GameState
 --wallDeath game = if wallCollision (shipLoc game) 20 then deathState else game
 
-
-
 handleKeys :: Event -> GameState -> GameState
-handleKeys (EventKey (Char 'w') Down _ _) (Game t s a b) = Game t (s {shipVel = (xv, yv + 50)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (Char 'a') Down _ _) (Game t s a b) = Game t (s {shipVel = (xv - 50, yv)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (Char 's') Down _ _) (Game t s a b) = Game t (s {shipVel = (xv, yv - 50)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (Char 'd') Down _ _) (Game t s a b) = Game t (s {shipVel = (xv + 50, yv)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (Char 'w') Up _ _) (Game t s a b) = Game t (s {shipVel = (xv, yv - 50)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (Char 'a') Up _ _) (Game t s a b) = Game t (s {shipVel = (xv + 50, yv)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (Char 's') Up _ _) (Game t s a b) = Game t (s {shipVel = (xv, yv + 50)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (Char 'd') Up _ _) (Game t s a b) = Game t (s {shipVel = (xv - 50, yv)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (xv, yv + 50)})a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game t s a b) = Game t (s {shipVel = (xv - 50, yv)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (SpecialKey KeyDown) Down _ _) (Game t s a b) = Game t (s {shipVel = (xv, yv - 50)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game t s a b) = Game t (s {shipVel = (xv + 50, yv)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (xv, yv - 50)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game t s a b) = Game t (s {shipVel = (xv + 50, yv)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (SpecialKey KeyDown) Up _ _) (Game t s a b) = Game t (s {shipVel = (xv, yv + 50)}) a b
-	where (xv, yv) = shipVel s
-handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (Game t s a b) = Game t (s {shipVel = (xv - 50, yv)}) a b
-	where (xv, yv) = shipVel s
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + 70}) a b
+handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - 70}) a b
+handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) - 5}) a b
+handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
+handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
+handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) - 5}) a b
 handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t s a ((Bullet {bulLoc = (x, y), bulAng = ang, bulAlive = True, bulVel = velang}) : b)
 	 where
-		(x, y) = shipLoc s
-		ang = shipAng s
-		yvel = cos ((shipAng s) * pi / 180)
-		xvel = sin ((shipAng s) * pi / 180)
-		norm = sqrt (xvel * xvel + yvel * yvel)
-		velang = (xvel /norm * bulletSpeed, yvel /norm * bulletSpeed)
+	 	(x, y) = shipLoc s
+	 	ang = shipAng s
+	 	yvel = cos ((shipAng s) * pi / 180)
+	 	xvel = sin ((shipAng s) * pi / 180)
+	 	norm = sqrt (xvel * xvel + yvel * yvel)
+	 	velang = (xvel /norm * bulletSpeed, yvel /norm * bulletSpeed)
 handleKeys _ game = game
 
 
