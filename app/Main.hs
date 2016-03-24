@@ -119,7 +119,7 @@ moveShip sec (Game t s a b) = if ((not (shipAlive s)) || (wallCollision (x, y) 2
 	where
 	(x, y) = shipLoc s
 	v = shipVel s
-	newAng = (shipAng s) + (rotation s)
+	newAng = (shipAng s) + ((rotation s) / 1.5)
 	x1 = x + v* (sin (newAng*pi/180)) * sec
 	y1 = y + v* (cos (newAng*pi/180)) * sec
 
