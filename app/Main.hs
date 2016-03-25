@@ -151,8 +151,11 @@ moveAst sec ast = if (wallCollision (x,y) ((astSize ast) / 2))
 --asteroidCollision :: Position -> Radius -> [Asteroid] -> Bool
 --asteroidCollision (x, y) rad ast = foldl ()
 
+--updateGame :: Time -> GameState -> GameState
+--updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (Game (updateStep t) s a b))
+
 updateGame :: Time -> GameState -> GameState
-updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (Game (updateStep t) s a b))
+updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (delObjects (Game (updateStep t) s a b)))
 
 updateStep :: Step -> Step
 updateStep 181 = 0
