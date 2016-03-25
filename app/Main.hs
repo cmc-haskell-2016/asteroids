@@ -116,13 +116,12 @@ moveShip :: Float -> GameState -> GameState
 moveShip sec (Game t s a b) = if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
 								then deathState
 							else Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
-							where
-								(x, y) = shipLoc s
-								v = shipVel s
-								newAng = (shipAng s) + (rotation s)
-								x1 = x + v* (sin (newAng*pi/180)) * sec
-								y1 = y + v* (cos (newAng*pi/180)) * sec
-
+	where
+	(x, y) = shipLoc s
+	v = shipVel s
+	newAng = (shipAng s) + ((rotation s) / 1.5)
+	x1 = x + v* (sin (newAng*pi/180)) * sec
+	y1 = y + v* (cos (newAng*pi/180)) * sec
 
 moveBullets :: Time -> GameState -> GameState
 moveBullets sec (Game t s a b) =Game t s a (map (moveBull sec) b)
@@ -131,11 +130,11 @@ moveBull :: Time -> Bullet -> Bullet
 moveBull sec bull = if (wallCollision (x,y) 3)
 					then bull {bulAlive = False}
 					else bull {bulLoc = (x1, y1)}
-					where
-						(x, y) = bulLoc bull
-						(vx, vy) = bulVel bull
-						x1 = x + vx * sec
-						y1 = y + vy * sec
+	where
+	(x, y) = bulLoc bull
+	(vx, vy) = bulVel bull
+	x1 = x + vx * sec
+	y1 = y + vy * sec
 
 moveAsteroids :: Time -> GameState -> GameState
 moveAsteroids sec (Game t s a b) =Game t s (map (moveAst sec) a) b
@@ -144,27 +143,16 @@ moveAst :: Time -> Asteroid -> Asteroid
 moveAst sec ast = if (wallCollision (x,y) ((astSize ast) / 2))
 					then ast {astAlive = False}
 					else ast {astLoc = (x1, y1)}
-					where
-						(x, y) = astLoc ast
-						(vx, vy) = astVel ast
-						x1 = x + vx * sec
-						y1 = y + vy * sec
+	where
+	(x, y) = astLoc ast
+	(vx, vy) = astVel ast
+	x1 = x + vx * sec
+	y1 = y + vy * sec
+--asteroidCollision :: Position -> Radius -> [Asteroid] -> Bool
+--asteroidCollision (x, y) rad ast = foldl ()
 
-{-}
-collisions :: GameState -> GameState
-collisions (Game t s (a:as) (b:bs)) =
-collisions (Game t s (a:as) b) =
-collisions (Game t s a (b:bs)) =
-
-shipCollision :: GameState -> GameState
-shipCollision (Game (Game t s (a:as) (b:bs))) = if shipAst || shipBul
-												then deathState
-												else Game t
-
-
--}
 updateGame :: Time -> GameState -> GameState
-updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (delObjects (Game (updateStep t) s a b)))
+updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (Game (updateStep t) s a b))
 
 updateStep :: Step -> Step
 updateStep 181 = 0
