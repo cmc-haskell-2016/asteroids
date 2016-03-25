@@ -44,22 +44,22 @@ drawingShip ship = if shipAlive ship
 
 drawingAteroid :: Asteroid -> Picture
 drawingAteroid ast =
-	if astAlive ast then
+--	if astAlive ast then
 		translate x y $
 		color black $
 		circleSolid rad
-	else blank
+--	else blank
 	where
 		(x, y) = astLoc ast
 		rad = astSize ast
 
 drawingBullet :: Bullet -> Picture
 drawingBullet bull =
-	if bulAlive bull then
+--	if bulAlive bull then
 		translate x y $
 		color red $
 		circleSolid 3
-	else blank
+--	else blank
 	where
 		(x, y) = bulLoc bull
 
@@ -100,7 +100,7 @@ addAsteroid :: GameState -> GameState
 addAsteroid (Game 180 s ast b) = Game 180 s (a : ast) b
 	where
 		genShipX = mkStdGen (round (fst (shipLoc s)))
-		randPos = take 2 (randomRs ((-250)::Float, 250::Float) genShipX)
+		randPos = take 2 (randomRs ((-200)::Float, 200::Float) genShipX)
 		randLoc = (head randPos, head (tail randPos))
 		genShipY = mkStdGen (round (snd (shipLoc s)))
 		randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genShipY)
@@ -113,15 +113,16 @@ addAsteroid game = game
 
 
 moveShip :: Float -> GameState -> GameState
-moveShip sec (Game t s a b) = if ((not (shipAlive s)) || (wallCollision (x, y) 20))
+moveShip sec (Game t s a b) = if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
 								then deathState
 							else Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
-	where
-	(x, y) = shipLoc s
-	v = shipVel s
-	newAng = (shipAng s) + (rotation s)
-	x1 = x + v* (sin (newAng*pi/180)) * sec
-	y1 = y + v* (cos (newAng*pi/180)) * sec
+							where
+								(x, y) = shipLoc s
+								v = shipVel s
+								newAng = (shipAng s) + (rotation s)
+								x1 = x + v* (sin (newAng*pi/180)) * sec
+								y1 = y + v* (cos (newAng*pi/180)) * sec
+
 
 moveBullets :: Time -> GameState -> GameState
 moveBullets sec (Game t s a b) =Game t s a (map (moveBull sec) b)
@@ -130,11 +131,11 @@ moveBull :: Time -> Bullet -> Bullet
 moveBull sec bull = if (wallCollision (x,y) 3)
 					then bull {bulAlive = False}
 					else bull {bulLoc = (x1, y1)}
-	where
-	(x, y) = bulLoc bull
-	(vx, vy) = bulVel bull
-	x1 = x + vx * sec
-	y1 = y + vy * sec
+					where
+						(x, y) = bulLoc bull
+						(vx, vy) = bulVel bull
+						x1 = x + vx * sec
+						y1 = y + vy * sec
 
 moveAsteroids :: Time -> GameState -> GameState
 moveAsteroids sec (Game t s a b) =Game t s (map (moveAst sec) a) b
@@ -143,16 +144,27 @@ moveAst :: Time -> Asteroid -> Asteroid
 moveAst sec ast = if (wallCollision (x,y) ((astSize ast) / 2))
 					then ast {astAlive = False}
 					else ast {astLoc = (x1, y1)}
-	where
-	(x, y) = astLoc ast
-	(vx, vy) = astVel ast
-	x1 = x + vx * sec
-	y1 = y + vy * sec
---asteroidCollision :: Position -> Radius -> [Asteroid] -> Bool
---asteroidCollision (x, y) rad ast = foldl ()
+					where
+						(x, y) = astLoc ast
+						(vx, vy) = astVel ast
+						x1 = x + vx * sec
+						y1 = y + vy * sec
 
+{-}
+collisions :: GameState -> GameState
+collisions (Game t s (a:as) (b:bs)) =
+collisions (Game t s (a:as) b) =
+collisions (Game t s a (b:bs)) =
+
+shipCollision :: GameState -> GameState
+shipCollision (Game (Game t s (a:as) (b:bs))) = if shipAst || shipBul
+												then deathState
+												else Game t
+
+
+-}
 updateGame :: Time -> GameState -> GameState
-updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (Game (updateStep t) s a b))
+updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (delObjects (Game (updateStep t) s a b)))
 
 updateStep :: Step -> Step
 updateStep 181 = 0
@@ -160,6 +172,18 @@ updateStep t = t + 1
 
 moveObjects :: Time -> GameState -> GameState
 moveObjects sec game = moveShip sec (moveBullets sec (moveAsteroids sec game))
+
+delObjects :: GameState -> GameState
+delObjects (Game t s a b) = Game t s (filter (\ast -> astAlive ast) a) (filter (\bul -> bulAlive bul) b)
+
+asteroidCollision :: Position -> Radius -> [Asteroid] -> Bool
+asteroidCollision _ _ [] = False
+asteroidCollision (x, y) rad (a:as) =
+	if dist > rad + astSize a
+		then asteroidCollision (x, y) rad as
+		else True
+	where
+		dist = sqrt ((x - (fst (astLoc a)))^2 + (y - (snd (astLoc a)))^2)
 
 wallCollision :: Position -> Radius -> Bool
 wallCollision pos rad = xCollision pos rad || yCollision pos rad
