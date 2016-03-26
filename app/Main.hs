@@ -123,8 +123,14 @@ moveShip sec (Game t s a b) = if ((not (shipAlive s)) || (wallCollision (x, y) 2
 	x1 = x + v* (sin (newAng*pi/180)) * sec
 	y1 = y + v* (cos (newAng*pi/180)) * sec
 
+--moveBullets :: Time -> GameState -> GameState
+--moveBullets sec (Game t s a b) =Game t s a (map (moveBull sec) b)
+
 moveBullets :: Time -> GameState -> GameState
-moveBullets sec (Game t s a b) =Game t s a (map (moveBull sec) b)
+moveBullets sec (Game t s a b) =Game t s a (map (\bull -> if asteroidCollision (bulLoc bull) 3 a
+															then	bull {bulAlive = False}
+															else	moveBull sec bull) b)
+
 
 moveBull :: Time -> Bullet -> Bullet
 moveBull sec bull = if (wallCollision (x,y) 3)
@@ -137,7 +143,9 @@ moveBull sec bull = if (wallCollision (x,y) 3)
 	y1 = y + vy * sec
 
 moveAsteroids :: Time -> GameState -> GameState
-moveAsteroids sec (Game t s a b) =Game t s (map (moveAst sec) a) b
+moveAsteroids sec (Game t s a b) =Game t s (map (\ast -> if bulletsCollision (astLoc ast) (astSize ast) b
+															then	ast {astAlive = False}
+															else	moveAst sec ast) a) b
 
 moveAst :: Time -> Asteroid -> Asteroid
 moveAst sec ast = if (wallCollision (x,y) ((astSize ast) / 2))
@@ -175,6 +183,15 @@ asteroidCollision (x, y) rad (a:as) =
 		else True
 	where
 		dist = sqrt ((x - (fst (astLoc a)))^2 + (y - (snd (astLoc a)))^2)
+
+bulletsCollision :: Position -> Radius -> [Bullet] -> Bool
+bulletsCollision _ _ [] = False
+bulletsCollision (x, y) rad (a:as) =
+	if dist > rad + 3
+		then bulletsCollision (x, y) rad as
+		else True
+	where
+		dist = sqrt ((x - (fst (bulLoc a)))^2 + (y - (snd (bulLoc a)))^2)
 
 wallCollision :: Position -> Radius -> Bool
 wallCollision pos rad = xCollision pos rad || yCollision pos rad

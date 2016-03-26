@@ -36,7 +36,7 @@ fps = 60
 
 
 bulletSpeed :: Float
-bulletSpeed = 100
+bulletSpeed = 200
 
 shipColor :: Color
 shipColor = light (light red)
