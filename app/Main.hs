@@ -44,22 +44,18 @@ drawingShip ship = if shipAlive ship
 
 drawingAteroid :: Asteroid -> Picture
 drawingAteroid ast =
---	if astAlive ast then
 		translate x y $
 		color black $
 		circleSolid rad
---	else blank
 	where
 		(x, y) = astLoc ast
 		rad = astSize ast
 
 drawingBullet :: Bullet -> Picture
 drawingBullet bull =
---	if bulAlive bull then
 		translate x y $
 		color red $
 		circleSolid 3
---	else blank
 	where
 		(x, y) = bulLoc bull
 
@@ -89,13 +85,7 @@ deathState = Game 0 deathShip [] []
 
 renderPic :: GameState -> Picture
 renderPic (Game _ s a b) = pictures ([(drawingShip s)] ++ (map drawingAteroid a) ++ (map drawingBullet b))
-{-}
-addAsteroid :: GameState -> GameState
-addAsteroid (Game 180 s ast b ) = Game 180 s (a : ast) b
-	where
-		a = genAsteroid (mkStdGen (length ast))
-addAsteroid game = game
--}
+
 addAsteroid :: GameState -> GameState
 addAsteroid (Game 180 s ast b) = Game 180 s (a : ast) b
 	where
@@ -113,29 +103,33 @@ addAsteroid game = game
 
 
 moveShip :: Float -> GameState -> GameState
-moveShip sec (Game t s a b) = if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
-								then deathState
-							else Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
+moveShip sec (Game t s a b) =
+	if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
+		then deathState
+		else Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
 	where
-	(x, y) = shipLoc s
-	v = shipVel s
-	newAng = (shipAng s) + ((rotation s) / 1.5)
-	x1 = x + v* (sin (newAng*pi/180)) * sec
-	y1 = y + v* (cos (newAng*pi/180)) * sec
+		(x, y) = shipLoc s
+		v = shipVel s
+		newAng = (shipAng s) + ((rotation s) / 1.5)
+		x1 = x + v* (sin (newAng*pi/180)) * sec
+		y1 = y + v* (cos (newAng*pi/180)) * sec
 
 --moveBullets :: Time -> GameState -> GameState
 --moveBullets sec (Game t s a b) =Game t s a (map (moveBull sec) b)
 
 moveBullets :: Time -> GameState -> GameState
-moveBullets sec (Game t s a b) =Game t s a (map (\bull -> if asteroidCollision (bulLoc bull) 3 a
-															then	bull {bulAlive = False}
-															else	moveBull sec bull) b)
+moveBullets sec (Game t s a b) =
+	Game t s a (map (\bull ->
+		if asteroidCollision (bulLoc bull) 3 a
+			then	bull {bulAlive = False}
+			else	moveBull sec bull) b)
 
 
 moveBull :: Time -> Bullet -> Bullet
-moveBull sec bull = if (wallCollision (x,y) 3)
-					then bull {bulAlive = False}
-					else bull {bulLoc = (x1, y1)}
+moveBull sec bull =
+	if (wallCollision (x,y) 3)
+		then bull {bulAlive = False}
+		else bull {bulLoc = (x1, y1)}
 	where
 	(x, y) = bulLoc bull
 	(vx, vy) = bulVel bull
@@ -143,24 +137,23 @@ moveBull sec bull = if (wallCollision (x,y) 3)
 	y1 = y + vy * sec
 
 moveAsteroids :: Time -> GameState -> GameState
-moveAsteroids sec (Game t s a b) =Game t s (map (\ast -> if bulletsCollision (astLoc ast) (astSize ast) b
-															then	ast {astAlive = False}
-															else	moveAst sec ast) a) b
+moveAsteroids sec (Game t s a b) =
+	Game t s (map (\ast ->
+		if bulletsCollision (astLoc ast) (astSize ast) b
+			then	ast {astAlive = False}
+			else	moveAst sec ast) a) b
 
 moveAst :: Time -> Asteroid -> Asteroid
-moveAst sec ast = if (wallCollision (x,y) ((astSize ast) / 2))
-					then ast {astAlive = False}
-					else ast {astLoc = (x1, y1)}
+moveAst sec ast =
+	if (wallCollision (x,y) ((astSize ast) / 2))
+		then ast {astAlive = False}
+		else ast {astLoc = (x1, y1)}
 	where
-	(x, y) = astLoc ast
-	(vx, vy) = astVel ast
-	x1 = x + vx * sec
-	y1 = y + vy * sec
---asteroidCollision :: Position -> Radius -> [Asteroid] -> Bool
---asteroidCollision (x, y) rad ast = foldl ()
+		(x, y) = astLoc ast
+		(vx, vy) = astVel ast
+		x1 = x + vx * sec
+		y1 = y + vy * sec
 
---updateGame :: Time -> GameState -> GameState
---updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (Game (updateStep t) s a b))
 
 updateGame :: Time -> GameState -> GameState
 updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (delObjects (Game (updateStep t) s a b)))
@@ -202,8 +195,6 @@ xCollision (x, _) rad = (x + rad >= fromIntegral width/2) || (x - rad <= -fromIn
 yCollision :: Position -> Radius -> Bool
 yCollision (_, y) rad = (y + rad >= fromIntegral height/2) || (y - rad <= -fromIntegral height/2)
 
---wallDeath :: GameState -> GameState
---wallDeath game = if wallCollision (shipLoc game) 20 then deathState else game
 
 handleKeys :: Event -> GameState -> GameState
 handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + 70}) a b
@@ -226,6 +217,3 @@ handleKeys _ game = game
 
 main :: IO ()
 main = play window background fps initialState renderPic handleKeys updateGame
-
-
-
