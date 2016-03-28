@@ -114,8 +114,6 @@ moveShip sec (Game t s a b) =
         x1 = x + v* (sin (newAng*pi/180)) * sec
         y1 = y + v* (cos (newAng*pi/180)) * sec
 
---moveBullets :: Time -> GameState -> GameState
---moveBullets sec (Game t s a b) =Game t s a (map (moveBull sec) b)
 
 moveBullets :: Time -> GameState -> GameState
 moveBullets sec (Game t s a b) =
