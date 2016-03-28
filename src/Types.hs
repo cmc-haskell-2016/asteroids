@@ -44,25 +44,25 @@ shipColor = light (light red)
 data GameState = Game Step Ship [Asteroid] [Bullet] deriving (Show, Eq)
 
 data Ship = Ship {
-	shipLoc :: Position,
-	shipVel :: ShipSpeed,
-	shipAng :: Degree,
-	rotation :: Degree,
-	shipAlive :: Bool
+    shipLoc :: Position,
+    shipVel :: ShipSpeed,
+    shipAng :: Degree,
+    rotation :: Degree,
+    shipAlive :: Bool
 } deriving (Show, Eq)
 
 data Asteroid = Asteroid {
-	astLoc :: Position,
-	astAng :: Degree,
-	astSize :: Radius,
-	astAlive :: Bool,
-	astVel :: Speed
+    astLoc :: Position,
+    astAng :: Degree,
+    astSize :: Radius,
+    astAlive :: Bool,
+    astVel :: Speed
 } deriving (Show, Eq)
 
 data Bullet = Bullet {
-	bulLoc :: Position,
-	bulAng :: Degree,
-	bulVel :: Speed,
-	bulAlive :: Bool
+    bulLoc :: Position,
+    bulAng :: Degree,
+    bulVel :: Speed,
+    bulAlive :: Bool
 } deriving (Show, Eq)
 
