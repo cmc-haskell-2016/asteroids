@@ -83,16 +83,22 @@ deathState :: GameState
 deathState = Game 0 deathShip [] []
 
 renderPic :: GameState -> Picture
-renderPic (Game _ s a b) = pictures ([(drawingShip s)] ++ (map drawingAsteroid a) ++ (map drawingBullet b))
+renderPic (Game _ s a b) = pictures ((drawingShip s) : (map drawingAsteroid a) ++ (map drawingBullet b))
+
+{-
+generateAstPosition :: Position -> [Float] -> Position
+generateAstPosition (xSh, ySh) x:xs =
+    if (x == xSh) && (take 1 xs == ySh)
+-}
 
 addAsteroid :: GameState -> GameState
 addAsteroid (Game 60 s ast b) = Game 0 s (a : ast) b
     where
-        genShipX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) ast)))
-        randPos = take 2 (randomRs ((-200)::Float, 200::Float) genShipX)
+        genX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) ast)))
+        randPos = take 2 (randomRs ((-200)::Float, 200::Float) genX)
         randLoc = (head randPos, head (tail randPos))
-        genShipY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) ast)))
-        randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genShipY)
+        genY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) ast)))
+        randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genY)
         randVel = (head randSpeed, head (tail randSpeed))
         genAst = mkStdGen (length ast)
         randInt = take 1 (randomRs (10::Float, 50::Float) genAst)
@@ -161,6 +167,16 @@ moveObjects sec game = moveShip sec (moveBullets sec (moveAsteroids sec game))
 
 delObjects :: GameState -> GameState
 delObjects (Game t s a b) = Game t s (filter (\ast -> astAlive ast) a) (filter (\bul -> bulAlive bul) b)
+
+{-
+twoCirclesCollide :: Position -> Radius -> Position -> Radius -> Bool
+twoCirclesCollide (x1, y1) rad1 (x2, y2) rad2 =
+    if dist > rad1 + rad2
+        then False
+        else True
+    where
+        dist = sqrt ((x1-x2)^2 + (y1-y2)^2)
+-}
 
 asteroidCollision :: Position -> Radius -> [Asteroid] -> Bool
 asteroidCollision _ _ [] = False
