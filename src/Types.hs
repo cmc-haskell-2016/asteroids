@@ -16,6 +16,9 @@ type Step = Int
 --------------------------------------------
 -- Constants
 
+speedShip :: Float
+speedShip = 100
+
 width :: Int
 width = 700
 

@@ -6,7 +6,6 @@ import Graphics.Gloss.Interface.Pure.Game
 import Graphics.Gloss.Rendering
 import System.Random
 
-
 window :: Display
 window = InWindow "ASTEROID BATTLE by Team Stolyarov" (width, height) (offsetX, offsetY)
 
@@ -87,12 +86,12 @@ renderPic :: GameState -> Picture
 renderPic (Game _ s a b) = pictures ([(drawingShip s)] ++ (map drawingAsteroid a) ++ (map drawingBullet b))
 
 addAsteroid :: GameState -> GameState
-addAsteroid (Game 180 s ast b) = Game 180 s (a : ast) b
+addAsteroid (Game 60 s ast b) = Game 0 s (a : ast) b
     where
-        genShipX = mkStdGen (round (fst (shipLoc s) + foldr (+) 1 (map (fst . astLoc) ast)))
+        genShipX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) ast)))
         randPos = take 2 (randomRs ((-200)::Float, 200::Float) genShipX)
         randLoc = (head randPos, head (tail randPos))
-        genShipY = mkStdGen (round (snd (shipLoc s)))
+        genShipY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) ast)))
         randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genShipY)
         randVel = (head randSpeed, head (tail randSpeed))
         genAst = mkStdGen (length ast)
@@ -154,11 +153,8 @@ moveAst sec ast =
 
 
 updateGame :: Time -> GameState -> GameState
-updateGame sec (Game t s a b) = addAsteroid (moveObjects sec (delObjects (Game (updateStep t) s a b)))
+updateGame sec (Game t s a b) = addAsteroid $ moveObjects sec $ delObjects (Game (t + 1) s a b)
 
-updateStep :: Step -> Step
-updateStep 181 = 0
-updateStep t = t + 1
 
 moveObjects :: Time -> GameState -> GameState
 moveObjects sec game = moveShip sec (moveBullets sec (moveAsteroids sec game))
@@ -199,8 +195,8 @@ yCollision (_, y) rad = (y + rad >= fromIntegral height/2) || (y - rad <= -fromI
 
 
 handleKeys :: Event -> GameState -> GameState
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + 70}) a b
-handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - 70}) a b
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + speedShip}) a b
+handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - speedShip}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) - 5}) a b
 handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
