@@ -65,7 +65,8 @@ initialShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = True,
-    shieldOn = False
+    shieldOn = False,
+    shieldTime = 0
 }
 
 deathShip :: Ship
