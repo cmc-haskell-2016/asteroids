@@ -143,7 +143,9 @@ moveBull sec bull =
 moveAsteroids :: Time -> GameState -> GameState
 moveAsteroids sec (Game t s a b) =
     Game t s (map (\ast ->
-        if bulletsCollision (astLoc ast) (astSize ast) b
+        if (bulletsCollision (astLoc ast) (astSize ast) b) ||
+        	(shieldOn s) &&
+        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) 30)
             then    ast {astAlive = False}
             else    moveAst sec ast) a) b
 
