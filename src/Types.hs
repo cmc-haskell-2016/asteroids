@@ -17,8 +17,8 @@ type Unit = Int
 --------------------------------------------
 -- Constants
 
-maxShieldTime:: Int
-maxShieldTime = 5
+maxShieldPower:: Int
+maxShieldPower = 70
 
 mainShipSize:: Float
 mainShipSize = 20

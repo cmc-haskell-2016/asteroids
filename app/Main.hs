@@ -109,7 +109,6 @@ generateAstPosition shipPos (x:xs) =
         then generateAstPosition shipPos (tail xs)
     else (x, head xs)
 
-
 addAsteroid :: GameState -> GameState
 addAsteroid (Game 60 s ast b) = Game 0 s (a : ast) b
     where
@@ -124,18 +123,20 @@ addAsteroid (Game 60 s ast b) = Game 0 s (a : ast) b
         a = Asteroid {astLoc = randLoc, astAng = 0, astSize = randRad, astAlive = True, astVel = randVel}
 addAsteroid game = game
 
-
 moveShip :: Float -> GameState -> GameState
 moveShip sec (Game t s a b) =
     if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
         then deathState
 	    else
-	        if (shieldOn s) then
-	            if (shieldAcc s == 0) then
+	        if shieldOn s then
+	            if shieldAcc s == 0 then
 	                moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldOn = False}) a b
 	            else  moveShipAccel sec  $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s - 1}) a b
 	        else
-	            moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s + 1}) a b
+                if shieldAcc s >= maxShieldPower then
+                    moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
+                else
+    	            moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s + 1}) a b
 	    where
 	        (x, y) = shipLoc s
 	        v = shipVel s
@@ -144,8 +145,8 @@ moveShip sec (Game t s a b) =
 	        y1 = y + v* (cos (newAng*pi/180)) * sec
 
 moveShipAccel :: Float -> GameState -> GameState
-moveShipAccel sec (Game t s a b) = 
-	if  shipAccel s   
+moveShipAccel sec (Game t s a b) =
+	if  shipAccel s
 		then Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s  + 3 }) a b
 		else Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s - (shipVel s)*0.02}) a b
     where
