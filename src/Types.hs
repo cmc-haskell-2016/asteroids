@@ -17,6 +17,9 @@ type Seconds = Int
 --------------------------------------------
 -- Constants
 
+maxShieldTime:: Int
+maxShieldTime = 5
+
 mainShipSize:: Float
 mainShipSize = 20
 

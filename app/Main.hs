@@ -66,7 +66,7 @@ initialShip = Ship {
     shipVel = 0,
     shipAlive = True,
     shieldOn = False,
-    shieldTime = 0
+    shieldAcc = 0
 }
 
 deathShip :: Ship
@@ -114,7 +114,13 @@ moveShip :: Float -> GameState -> GameState
 moveShip sec (Game t s a b) =
     if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
         then deathState
-        else Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
+    else
+        if (shieldOn)
+            if (shieldAcc == 0)
+                then Game t (s {shipAng = newAng, shipLoc = (x1, y1)}, shieldOn = False}) a b
+            else  Game t (s {shipAng = newAng, shipLoc = (x1, y1)}, shieldAcc = shieldAcc s - 1}) a b
+        else
+            Game t (s {shipAng = newAng, shipLoc = (x1, y1)}, shieldAcc = shieldAcc s + 1}) a b
     where
         (x, y) = shipLoc s
         v = shipVel s
