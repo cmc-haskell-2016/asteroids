@@ -17,21 +17,21 @@ drawingShip ship = if shipAlive ship
         translate x y $
         color shipColor $
         rotate phi $
-        polygon [(10, -5), (0, 0), (0, 20)],
+        polygon [(10, -5), (0, 0), (0, mainShipSize)],
         translate x y $
         color shipColor $
         rotate phi $
-        polygon [(-10, -5), (0, 0), (0, 20)]]
+        polygon [(-10, -5), (0, 0), (0, mainShipSize)]]
     else
         scale 10 10 (pictures[
         translate x y $
         color shipColor $
         rotate phi $
-        polygon [(10, -5), (0, 0), (0, 20)],
+        polygon [(10, -5), (0, 0), (0, mainShipSize)],
         translate x y $
         color shipColor $
         rotate phi $
-        polygon [(-10, -5), (0, 0), (0, 20)],
+        polygon [(-10, -5), (0, 0), (0, mainShipSize)],
         translate (-18) (-20) $
         scale 0.05 0.05 $
         color red $
@@ -85,18 +85,19 @@ deathState = Game 0 deathShip [] []
 renderPic :: GameState -> Picture
 renderPic (Game _ s a b) = pictures ((drawingShip s) : (map drawingAsteroid a) ++ (map drawingBullet b))
 
-{-
+
 generateAstPosition :: Position -> [Float] -> Position
-generateAstPosition (xSh, ySh) x:xs =
-    if (x == xSh) && (take 1 xs == ySh)
--}
+generateAstPosition shipPos (x:xs) =
+    if (twoCirclesCollide shipPos mainShipSize (x, head xs) 50) == True
+        then generateAstPosition shipPos (tail xs)
+    else (x, head xs)
+
 
 addAsteroid :: GameState -> GameState
 addAsteroid (Game 60 s ast b) = Game 0 s (a : ast) b
     where
         genX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) ast)))
-        randPos = take 2 (randomRs ((-200)::Float, 200::Float) genX)
-        randLoc = (head randPos, head (tail randPos))
+        randLoc = generateAstPosition (shipLoc s) (randomRs ((-200)::Float, 200::Float) genX)
         genY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) ast)))
         randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genY)
         randVel = (head randSpeed, head (tail randSpeed))

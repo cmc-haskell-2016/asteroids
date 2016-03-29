@@ -16,6 +16,9 @@ type Step = Int
 --------------------------------------------
 -- Constants
 
+mainShipSize:: Float
+mainShipSize = 20
+
 speedShip :: Float
 speedShip = 100
 
@@ -39,7 +42,6 @@ background = makeColorI 25 25 112 0
 
 fps :: Int
 fps = 60
-
 
 bulletSpeed :: Float
 bulletSpeed = 200
