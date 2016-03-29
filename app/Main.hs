@@ -248,9 +248,9 @@ handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game t s a b) = Game t (s {
 handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
 handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) - 5}) a b
---handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t s a ((Bullet {bulLoc = (x, y), bulAng = ang, bulAlive = True, bulVel = velang}) : b)
-handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t (s {shieldOn = True}) a b
-handleKeys (EventKey (SpecialKey KeySpace) Up _ _) (Game t s a b) = Game t (s {shieldOn = False}) a b
+handleKeys (EventKey (Char 's') Down _ _) (Game t s a b) = Game t (s {shieldOn = True}) a b
+handleKeys (EventKey (Char 's') Up _ _) (Game t s a b) = Game t (s {shieldOn = False}) a b
+handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t s a ((Bullet {bulLoc = (x, y), bulAng = ang, bulAlive = True, bulVel = velang}) : b)
     where
         (x, y) = shipLoc s
         ang = shipAng s
