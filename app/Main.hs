@@ -89,7 +89,7 @@ renderPic (Game _ s a b) = pictures ([(drawingShip s)] ++ (map drawingAsteroid a
 addAsteroid :: GameState -> GameState
 addAsteroid (Game 180 s ast b) = Game 180 s (a : ast) b
     where
-        genShipX = mkStdGen (round (fst (shipLoc s)))
+        genShipX = mkStdGen (round (fst (shipLoc s) + foldr (+) 1 (map (fst . astLoc) ast)))
         randPos = take 2 (randomRs ((-200)::Float, 200::Float) genShipX)
         randLoc = (head randPos, head (tail randPos))
         genShipY = mkStdGen (round (snd (shipLoc s)))
@@ -173,7 +173,11 @@ asteroidCollision (x, y) rad (a:as) =
         then asteroidCollision (x, y) rad as
         else True
     where
-        dist = sqrt ((x - (fst (astLoc a)))^2 + (y - (snd (astLoc a)))^2)
+        dist = sqrt (diffX*diffX + diffY*diffY)
+        astX = fst (astLoc a)
+        astY = snd (astLoc a)
+        diffX = x - astX
+        diffY = y - astY
 
 bulletsCollision :: Position -> Radius -> [Bullet] -> Bool
 bulletsCollision _ _ [] = False
