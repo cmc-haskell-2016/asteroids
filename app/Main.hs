@@ -144,10 +144,7 @@ moveAsteroids :: Time -> GameState -> GameState
 moveAsteroids sec (Game t s a b) =
     Game t s (map (\ast ->
         if bulletsCollision (astLoc ast) (astSize ast) b
-            then    
-            	if astSize ast <= 10 
-            		then	ast {astAlive = False}
-            		else 	ast{astSize = astSize ast - 10}
+            then    ast {astAlive = False}
             else    moveAst sec ast) a) b
 
 moveAst :: Time -> Asteroid -> Asteroid
