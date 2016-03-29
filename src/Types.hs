@@ -12,9 +12,13 @@ type Speed = (Float, Float)
 type ShipSpeed = Float
 type Time = Float
 type Step = Int
+type Unit = Int
 
 --------------------------------------------
 -- Constants
+
+maxShieldTime:: Int
+maxShieldTime = 5
 
 mainShipSize:: Float
 mainShipSize = 20
@@ -24,6 +28,9 @@ speedShip = 100
 
 bulletSize :: Float
 bulletSize = 3
+
+shieldRad :: Float
+shieldRad = 40
 
 width :: Int
 width = 700
@@ -57,7 +64,12 @@ data Ship = Ship {
     shipAng :: Degree,
     rotation :: Degree,
     shipAlive :: Bool,
+<<<<<<< HEAD
     shipAccel :: Bool
+=======
+    shieldOn :: Bool,
+    shieldAcc:: Unit
+>>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
 } deriving (Show, Eq)
 
 data Asteroid = Asteroid {

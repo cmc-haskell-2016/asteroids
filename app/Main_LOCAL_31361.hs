@@ -58,17 +58,6 @@ drawingBullet bull =
     where
         (x, y) = bulLoc bull
 
-drawingShield :: Ship -> Picture
-drawingShield ship =
-    if shieldOn ship then
-        translate x y $
-        color shipColor $
-        circle shieldRad
-    else
-        blank
-    where
-        (x, y) = shipLoc ship
-
 initialShip :: Ship
 initialShip = Ship {
     shipLoc = (0, 0),
@@ -76,12 +65,7 @@ initialShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = True,
-<<<<<<< HEAD
     shipAccel = False
-=======
-    shieldOn = False,
-    shieldAcc = 0
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
 }
 
 deathShip :: Ship
@@ -91,11 +75,7 @@ deathShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = False,
-<<<<<<< HEAD
     shipAccel = False
-=======
-    shieldOn = False
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
 }
 
 initialState :: GameState
@@ -105,8 +85,7 @@ deathState :: GameState
 deathState = Game 0 deathShip [] []
 
 renderPic :: GameState -> Picture
-renderPic (Game _ s a b) = pictures
-    ((drawingShip s) : (map drawingAsteroid a) ++ (map drawingBullet b) ++ [drawingShield s])
+renderPic (Game _ s a b) = pictures ((drawingShip s) : (map drawingAsteroid a) ++ (map drawingBullet b))
 
 
 generateAstPosition :: Position -> [Float] -> Position
@@ -135,20 +114,10 @@ moveShip :: Float -> GameState -> GameState
 moveShip sec (Game t s a b) =
     if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
         then deathState
-<<<<<<< HEAD
         else 
         	if  shipAccel s   
         		then Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s  + 3 }) a b
         		else Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s - (shipVel s)*0.02}) a b
-=======
-    else
-        if (shieldOn s) then
-            if (shieldAcc s == 0) then
-                Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldOn = False}) a b
-            else  Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s - 1}) a b
-        else
-            Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s + 1}) a b
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
     where
         (x, y) = shipLoc s
         v = shipVel s
@@ -179,9 +148,7 @@ moveBull sec bull =
 moveAsteroids :: Time -> GameState -> GameState
 moveAsteroids sec (Game t s a b) =
     Game t s (map (\ast ->
-        if (bulletsCollision (astLoc ast) (astSize ast) b) ||
-        	(shieldOn s) &&
-        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) shieldRad)
+        if bulletsCollision (astLoc ast) (astSize ast) b
             then    ast {astAlive = False}
             else    moveAst sec ast) a) b
 
@@ -198,11 +165,11 @@ moveAst sec ast =
 
 
 updateGame :: Time -> GameState -> GameState
-updateGame sec (Game t s a b) = (addAsteroid . moveObjects sec . delObjects) (Game (t + 1) s a b)
+updateGame sec (Game t s a b) = addAsteroid $ moveObjects sec $ delObjects (Game (t + 1) s a b)
 
 
 moveObjects :: Time -> GameState -> GameState
-moveObjects sec game = ((moveShip sec) . (moveBullets sec) . (moveAsteroids sec)) game
+moveObjects sec game = moveShip sec (moveBullets sec (moveAsteroids sec game))
 
 delObjects :: GameState -> GameState
 delObjects (Game t s a b) = Game t s (filter (\ast -> astAlive ast) a) (filter (\bul -> bulAlive bul) b)
@@ -249,9 +216,7 @@ handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game t s a b) = Game t (s {
 handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
 handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) - 5}) a b
---handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t s a ((Bullet {bulLoc = (x, y), bulAng = ang, bulAlive = True, bulVel = velang}) : b)
-handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t (s {shieldOn = True}) a b
-handleKeys (EventKey (SpecialKey KeySpace) Up _ _) (Game t s a b) = Game t (s {shieldOn = False}) a b
+handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t s a ((Bullet {bulLoc = (x, y), bulAng = ang, bulAlive = True, bulVel = velang}) : b)
     where
         (x, y) = shipLoc s
         ang = shipAng s

@@ -76,12 +76,8 @@ initialShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = True,
-<<<<<<< HEAD
-    shipAccel = False
-=======
     shieldOn = False,
     shieldAcc = 0
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
 }
 
 deathShip :: Ship
@@ -91,11 +87,7 @@ deathShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = False,
-<<<<<<< HEAD
-    shipAccel = False
-=======
     shieldOn = False
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
 }
 
 initialState :: GameState
@@ -135,12 +127,6 @@ moveShip :: Float -> GameState -> GameState
 moveShip sec (Game t s a b) =
     if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
         then deathState
-<<<<<<< HEAD
-        else 
-        	if  shipAccel s   
-        		then Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s  + 3 }) a b
-        		else Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s - (shipVel s)*0.02}) a b
-=======
     else
         if (shieldOn s) then
             if (shieldAcc s == 0) then
@@ -148,7 +134,6 @@ moveShip sec (Game t s a b) =
             else  Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s - 1}) a b
         else
             Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s + 1}) a b
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
     where
         (x, y) = shipLoc s
         v = shipVel s
@@ -241,10 +226,8 @@ yCollision (_, y) rad = (y + rad >= fromIntegral height/2) || (y - rad <= -fromI
 
 
 handleKeys :: Event -> GameState -> GameState
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipAccel = True}) a b
-handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipAccel = False}) a b
---handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + speedShip}) a b
---handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - speedShip}) a b
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + speedShip}) a b
+handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - speedShip}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) - 5}) a b
 handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
