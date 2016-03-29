@@ -64,7 +64,8 @@ initialShip = Ship {
     shipAng = 0,
     rotation = 0,
     shipVel = 0,
-    shipAlive = True
+    shipAlive = True,
+    shipAccel = False
 }
 
 deathShip :: Ship
@@ -73,7 +74,8 @@ deathShip = Ship {
     shipAng = 0,
     rotation = 0,
     shipVel = 0,
-    shipAlive = False
+    shipAlive = False,
+    shipAccel = False
 }
 
 initialState :: GameState
@@ -112,7 +114,10 @@ moveShip :: Float -> GameState -> GameState
 moveShip sec (Game t s a b) =
     if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
         then deathState
-        else Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
+        else 
+        	if  shipAccel s   
+        		then Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s  + 3 }) a b
+        		else Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s - (shipVel s)*0.02}) a b
     where
         (x, y) = shipLoc s
         v = shipVel s
@@ -203,8 +208,10 @@ yCollision (_, y) rad = (y + rad >= fromIntegral height/2) || (y - rad <= -fromI
 
 
 handleKeys :: Event -> GameState -> GameState
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + speedShip}) a b
-handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - speedShip}) a b
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipAccel = True}) a b
+handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipAccel = False}) a b
+--handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + speedShip}) a b
+--handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - speedShip}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) - 5}) a b
 handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
