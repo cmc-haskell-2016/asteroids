@@ -64,12 +64,9 @@ data Ship = Ship {
     shipAng :: Degree,
     rotation :: Degree,
     shipAlive :: Bool,
-<<<<<<< HEAD
-    shipAccel :: Bool
-=======
+    shipAccel :: Bool,
     shieldOn :: Bool,
     shieldAcc:: Unit
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
 } deriving (Show, Eq)
 
 data Asteroid = Asteroid {

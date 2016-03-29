@@ -76,12 +76,9 @@ initialShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = True,
-<<<<<<< HEAD
-    shipAccel = False
-=======
+    shipAccel = False,
     shieldOn = False,
     shieldAcc = 0
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
 }
 
 deathShip :: Ship
@@ -91,11 +88,8 @@ deathShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = False,
-<<<<<<< HEAD
-    shipAccel = False
-=======
+    shipAccel = False,
     shieldOn = False
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
 }
 
 initialState :: GameState
@@ -135,27 +129,31 @@ moveShip :: Float -> GameState -> GameState
 moveShip sec (Game t s a b) =
     if ((not (shipAlive s)) || (wallCollision (x, y) 20) || (asteroidCollision (x, y) 20 a))
         then deathState
-<<<<<<< HEAD
-        else 
-        	if  shipAccel s   
-        		then Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s  + 3 }) a b
-        		else Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s - (shipVel s)*0.02}) a b
-=======
-    else
-        if (shieldOn s) then
-            if (shieldAcc s == 0) then
-                Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldOn = False}) a b
-            else  Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s - 1}) a b
-        else
-            Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s + 1}) a b
->>>>>>> 2d0dde199b47c3c54b0eab57ef777d9ac9d85fe2
+	    else
+	        if (shieldOn s) then
+	            if (shieldAcc s == 0) then
+	                moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldOn = False}) a b
+	            else  moveShipAccel sec  $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s - 1}) a b
+	        else
+	            moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s + 1}) a b
+	    where
+	        (x, y) = shipLoc s
+	        v = shipVel s
+	        newAng = (shipAng s) + ((rotation s) / 1.5)
+	        x1 = x + v* (sin (newAng*pi/180)) * sec
+	        y1 = y + v* (cos (newAng*pi/180)) * sec
+
+moveShipAccel :: Float -> GameState -> GameState
+moveShipAccel sec (Game t s a b) = 
+	if  shipAccel s   
+		then Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s  + 3 }) a b
+		else Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s - (shipVel s)*0.02}) a b
     where
         (x, y) = shipLoc s
         v = shipVel s
         newAng = (shipAng s) + ((rotation s) / 1.5)
         x1 = x + v* (sin (newAng*pi/180)) * sec
         y1 = y + v* (cos (newAng*pi/180)) * sec
-
 
 moveBullets :: Time -> GameState -> GameState
 moveBullets sec (Game t s a b) =
