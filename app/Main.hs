@@ -58,6 +58,17 @@ drawingBullet bull =
     where
         (x, y) = bulLoc bull
 
+drawingShield :: Ship -> Picture
+drawingShield ship =
+    if shieldOn ship then
+        translate x y $
+        color shipColor $
+        circle shieldRad
+    else
+        blank
+    where
+        (x, y) = shipLoc ship
+
 initialShip :: Ship
 initialShip = Ship {
     shipLoc = (0, 0),
@@ -75,7 +86,8 @@ deathShip = Ship {
     shipAng = 0,
     rotation = 0,
     shipVel = 0,
-    shipAlive = False
+    shipAlive = False,
+    shieldOn = False
 }
 
 initialState :: GameState
@@ -85,7 +97,8 @@ deathState :: GameState
 deathState = Game 0 deathShip [] []
 
 renderPic :: GameState -> Picture
-renderPic (Game _ s a b) = pictures ((drawingShip s) : (map drawingAsteroid a) ++ (map drawingBullet b))
+renderPic (Game _ s a b) = pictures
+    ((drawingShip s) : (map drawingAsteroid a) ++ (map drawingBullet b) ++ [drawingShield s])
 
 
 generateAstPosition :: Position -> [Float] -> Position
@@ -153,7 +166,7 @@ moveAsteroids sec (Game t s a b) =
     Game t s (map (\ast ->
         if (bulletsCollision (astLoc ast) (astSize ast) b) ||
         	(shieldOn s) &&
-        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) shieldSize)
+        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) shieldRad)
             then    ast {astAlive = False}
             else    moveAst sec ast) a) b
 
@@ -222,7 +235,6 @@ handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (Game t s a b) = Game t (s {r
 --handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t s a ((Bullet {bulLoc = (x, y), bulAng = ang, bulAlive = True, bulVel = velang}) : b)
 handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t (s {shieldOn = True}) a b
 handleKeys (EventKey (SpecialKey KeySpace) Up _ _) (Game t s a b) = Game t (s {shieldOn = False}) a b
-
     where
         (x, y) = shipLoc s
         ang = shipAng s

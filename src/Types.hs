@@ -29,8 +29,8 @@ speedShip = 100
 bulletSize :: Float
 bulletSize = 3
 
-shieldSize :: Float
-shieldSize = 50
+shieldRad :: Float
+shieldRad = 40
 
 width :: Int
 width = 700
