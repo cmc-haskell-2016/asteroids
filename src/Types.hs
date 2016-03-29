@@ -58,7 +58,7 @@ data Ship = Ship {
     shipAng :: Degree,
     rotation :: Degree,
     shipAlive :: Bool,
-    shieldOn :: Bool
+    shieldOn :: Bool,
     shieldTime:: Seconds
 } deriving (Show, Eq)
 
