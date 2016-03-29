@@ -162,11 +162,11 @@ moveAst sec ast =
 
 
 updateGame :: Time -> GameState -> GameState
-updateGame sec (Game t s a b) = addAsteroid $ moveObjects sec $ delObjects (Game (t + 1) s a b)
+updateGame sec (Game t s a b) = (addAsteroid . moveObjects sec . delObjects) (Game (t + 1) s a b)
 
 
 moveObjects :: Time -> GameState -> GameState
-moveObjects sec game = moveShip sec (moveBullets sec (moveAsteroids sec game))
+moveObjects sec game = ((moveShip sec) . (moveBullets sec) . (moveAsteroids sec)) game
 
 delObjects :: GameState -> GameState
 delObjects (Game t s a b) = Game t s (filter (\ast -> astAlive ast) a) (filter (\bul -> bulAlive bul) b)

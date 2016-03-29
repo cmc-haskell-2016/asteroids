@@ -12,6 +12,7 @@ type Speed = (Float, Float)
 type ShipSpeed = Float
 type Time = Float
 type Step = Int
+type Seconds = Int
 
 --------------------------------------------
 -- Constants
@@ -57,7 +58,8 @@ data Ship = Ship {
     shipAng :: Degree,
     rotation :: Degree,
     shipAlive :: Bool,
-    shieldOn :: Bool
+    shieldOn :: Bool,
+    shieldTime:: Seconds
 } deriving (Show, Eq)
 
 data Asteroid = Asteroid {
