@@ -168,7 +168,6 @@ moveObjects sec game = moveShip sec (moveBullets sec (moveAsteroids sec game))
 delObjects :: GameState -> GameState
 delObjects (Game t s a b) = Game t s (filter (\ast -> astAlive ast) a) (filter (\bul -> bulAlive bul) b)
 
-{-
 twoCirclesCollide :: Position -> Radius -> Position -> Radius -> Bool
 twoCirclesCollide (x1, y1) rad1 (x2, y2) rad2 =
     if dist > rad1 + rad2
@@ -176,29 +175,21 @@ twoCirclesCollide (x1, y1) rad1 (x2, y2) rad2 =
         else True
     where
         dist = sqrt ((x1-x2)^2 + (y1-y2)^2)
--}
 
 asteroidCollision :: Position -> Radius -> [Asteroid] -> Bool
 asteroidCollision _ _ [] = False
-asteroidCollision (x, y) rad (a:as) =
-    if dist > rad + astSize a
-        then asteroidCollision (x, y) rad as
-        else True
-    where
-        dist = sqrt (diffX*diffX + diffY*diffY)
-        astX = fst (astLoc a)
-        astY = snd (astLoc a)
-        diffX = x - astX
-        diffY = y - astY
+asteroidCollision shipPos rad (a:as) =
+    if (twoCirclesCollide shipPos rad (astLoc a) (astSize a)) == True
+        then True
+        else asteroidCollision shipPos rad as
 
 bulletsCollision :: Position -> Radius -> [Bullet] -> Bool
 bulletsCollision _ _ [] = False
-bulletsCollision (x, y) rad (a:as) =
-    if dist > rad + 3
-        then bulletsCollision (x, y) rad as
-        else True
-    where
-        dist = sqrt ((x - (fst (bulLoc a)))^2 + (y - (snd (bulLoc a)))^2)
+bulletsCollision shipPos rad (a:as) =
+    if (twoCirclesCollide shipPos rad (bulLoc a) bulletSize) == True
+        then True
+        else bulletsCollision shipPos rad as
+
 
 wallCollision :: Position -> Radius -> Bool
 wallCollision pos rad = xCollision pos rad || yCollision pos rad

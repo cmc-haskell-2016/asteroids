@@ -19,6 +19,9 @@ type Step = Int
 speedShip :: Float
 speedShip = 100
 
+bulletSize :: Float
+bulletSize = 3
+
 width :: Int
 width = 700
 
