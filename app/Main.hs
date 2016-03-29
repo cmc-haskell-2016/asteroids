@@ -60,8 +60,14 @@ drawingBullet bull =
 
 drawingShield :: Ship -> Picture
 drawingShield ship =
-    color shipColor $
-    circleSolid shieldSize
+    if shieldOn ship then
+        translate x y $
+        color shipColor $
+        circle shieldRad
+    else
+        blank
+    where
+        (x, y) = shipLoc ship
 
 initialShip :: Ship
 initialShip = Ship {
@@ -80,7 +86,8 @@ deathShip = Ship {
     shipAng = 0,
     rotation = 0,
     shipVel = 0,
-    shipAlive = False
+    shipAlive = False,
+    shieldOn = False
 }
 
 initialState :: GameState
@@ -90,7 +97,8 @@ deathState :: GameState
 deathState = Game 0 deathShip [] []
 
 renderPic :: GameState -> Picture
-renderPic (Game _ s a b) = pictures ((drawingShip s) : (map drawingAsteroid a) ++ (map drawingBullet b))
+renderPic (Game _ s a b) = pictures
+    ((drawingShip s) : (map drawingAsteroid a) ++ (map drawingBullet b) ++ [drawingShield s])
 
 
 generateAstPosition :: Position -> [Float] -> Position
@@ -152,7 +160,7 @@ moveAsteroids sec (Game t s a b) =
     Game t s (map (\ast ->
         if (bulletsCollision (astLoc ast) (astSize ast) b) ||
         	(shieldOn s) &&
-        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) shieldSize)
+        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) shieldRad)
             then    ast {astAlive = False}
             else    moveAst sec ast) a) b
 
