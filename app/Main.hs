@@ -70,7 +70,8 @@ initialShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = True,
-    shieldOn = False
+    shieldOn = False,
+    shieldTime = 0
 }
 
 deathShip :: Ship
@@ -149,7 +150,9 @@ moveBull sec bull =
 moveAsteroids :: Time -> GameState -> GameState
 moveAsteroids sec (Game t s a b) =
     Game t s (map (\ast ->
-        if bulletsCollision (astLoc ast) (astSize ast) b
+        if (bulletsCollision (astLoc ast) (astSize ast) b) ||
+        	(shieldOn s) &&
+        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) shieldSize)
             then    ast {astAlive = False}
             else    moveAst sec ast) a) b
 
