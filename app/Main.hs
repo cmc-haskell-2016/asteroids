@@ -65,7 +65,8 @@ initialShip = Ship {
     rotation = 0,
     shipVel = 0,
     shipAlive = True,
-    shieldOn = False
+    shieldOn = False,
+    shieldTime = 0
 }
 
 deathShip :: Ship
@@ -208,7 +209,6 @@ yCollision (_, y) rad = (y + rad >= fromIntegral height/2) || (y - rad <= -fromI
 handleKeys :: Event -> GameState -> GameState
 handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) + speedShip}) a b
 handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - speedShip}) a b
-handleKeys (EventKey (SpecialKey KeyDown) Up _ _) (Game t s a b) = Game t (s {shipVel = (shipVel s) - speedShip}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) - 5}) a b
 handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
 handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (Game t s a b) = Game t (s {rotation = (rotation s) + 5}) a b
