@@ -58,6 +58,11 @@ drawingBullet bull =
     where
         (x, y) = bulLoc bull
 
+drawingShield :: Ship -> Picture
+drawingShield ship =
+    color shipColor $
+    circleSolid shieldSize
+
 initialShip :: Ship
 initialShip = Ship {
     shipLoc = (0, 0),
@@ -213,7 +218,6 @@ handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (Game t s a b) = Game t (s {r
 --handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t s a ((Bullet {bulLoc = (x, y), bulAng = ang, bulAlive = True, bulVel = velang}) : b)
 handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (Game t s a b) = Game t (s {shieldOn = True}) a b
 handleKeys (EventKey (SpecialKey KeySpace) Up _ _) (Game t s a b) = Game t (s {shieldOn = False}) a b
-
     where
         (x, y) = shipLoc s
         ang = shipAng s
