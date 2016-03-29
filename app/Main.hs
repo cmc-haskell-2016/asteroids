@@ -146,7 +146,7 @@ moveAsteroids sec (Game t s a b) =
     Game t s (map (\ast ->
         if (bulletsCollision (astLoc ast) (astSize ast) b) ||
         	(shieldOn s) &&
-        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) 30)
+        	(twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) 50)
             then    ast {astAlive = False}
             else    moveAst sec ast) a) b
 
