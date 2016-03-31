@@ -11,6 +11,9 @@ addons:
     - hvr-ghc
     packages:
     - ghc-7.10.3
+    - libgl1-mesa-dev
+    - libglu1-mesa-dev
+    - freeglut3-dev
 
 before_install:
   - export PATH=/opt/ghc/7.10.3/bin:$PATH
