@@ -11,6 +11,7 @@ type ShipSpeed = Float
 type Time = Float
 type Step = Int
 type Unit = Int
+type GameId = Int
 
 --speedShip :: Float
 --speedShip = 100
