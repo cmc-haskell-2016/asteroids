@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Game where
 
 import Types
@@ -26,67 +27,87 @@ generateAstPosition ship (x:xs) =
 
 
 addAsteroid :: GameState -> GameState
-addAsteroid (Game 60 s ast b) = Game 0 s (a : ast) b
+addAsteroid game@Game{..} =
+    if (step == 60)
+    then
+        game {
+            step = 0,
+            asteroids = (a : asteroids)
+        }
+    else
+        game
     where
-        genX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) ast)))
-        randLoc = generateAstPosition s (randomRs ((-200)::Float, 200::Float) genX)
-        genY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) ast)))
+        genX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) asteroids)))
+        randLoc = generateAstPosition ship (randomRs ((-200)::Float, 200::Float) genX)
+        genY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) asteroids)))
         randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genY)
         randVel = (head randSpeed, head (tail randSpeed))
-        genAst = mkStdGen (length ast)
+        genAst = mkStdGen (length asteroids)
         randInt = take 1 (randomRs (10::Float, 50::Float) genAst)
         randRad = head randInt
         a = Asteroid {astLoc = randLoc, astAng = 0, astSize = randRad, astAlive = True, astVel = randVel}
-addAsteroid game = game
 
 
 moveShip :: Float -> GameState -> GameState
-moveShip sec (Game t s a b) =
-    if ((not (shipAlive s)) ||
+moveShip sec game@Game{..} =
+    if ((not (shipAlive ship)) ||
         (wallCollision (x, y) 20) ||
-        (asteroidCollision (x, y) 20 a))
+        (asteroidCollision (x, y) 20 asteroids))
         then
-            deathState
+            deathGame
         else
-            if shieldOn s then
-                if shieldAcc s == 0
+            if shieldOn ship then
+                if shieldAcc ship == 0
                     then
-                        moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldOn = False}) a b
+                        moveShipAccel sec $
+                            game {ship = newShip {shieldOn = False}}
                     else
-                        moveShipAccel sec  $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s - 1}) a b
+                        moveShipAccel sec  $
+                            game {ship = newShip {shieldAcc = (shieldAcc newShip) - 1}}
             else
-                if shieldAcc s >= maxShieldPower
+                if shieldAcc ship >= maxShieldPower
                     then
-                        moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1)}) a b
+                        moveShipAccel sec $
+                            game {ship = newShip}
                     else
-                        moveShipAccel sec $ Game t (s {shipAng = newAng, shipLoc = (x1, y1), shieldAcc = shieldAcc s + 1}) a b
+                        moveShipAccel sec  $
+                            game {ship = newShip {shieldAcc = (shieldAcc newShip) + 1}}
         where
-            (x, y) = shipLoc s
-            v = shipVel s
-            newAng = (shipAng s) + ((rotation s) / 1.5)
+            (x, y) = shipLoc ship
+            v = shipVel ship
+            newAng = (shipAng ship) + ((rotation ship) / 1.5)
             x1 = x + v* (sin (newAng*pi/180)) * sec
             y1 = y + v* (cos (newAng*pi/180)) * sec
+            newShip = ship {shipAng = newAng, shipLoc = (x1, y1)}
 
 
 moveShipAccel :: Float -> GameState -> GameState
-moveShipAccel sec (Game t s a b) =
-    if  shipAccel s
-        then Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s  + 3 }) a b
-        else Game t (s {shipAng = newAng, shipLoc = (x1, y1), shipVel = shipVel s - (shipVel s)*0.02}) a b
+moveShipAccel sec game@Game{..} =
+    if  shipAccel ship
+        then game {ship = newShip {shipVel = shipVel ship  + 3 }}
+        else game {ship = newShip {shipVel = 0.98 * (shipVel ship)}}
     where
-        (x, y) = shipLoc s
-        v = shipVel s
-        newAng = (shipAng s) + ((rotation s) / 1.5)
+        (x, y) = shipLoc ship
+        v = shipVel ship
+        newAng = (shipAng ship) + ((rotation ship) / 1.5)
         x1 = x + v* (sin (newAng*pi/180)) * sec
         y1 = y + v* (cos (newAng*pi/180)) * sec
+        newShip = ship {shipAng = newAng, shipLoc = (x1, y1)}
 
 
 moveAllBullets :: Time -> GameState -> GameState
-moveAllBullets sec (Game t s a b) =
-    Game t s a (map (\bull ->
-        if asteroidCollision (bulLoc bull) 3 a
-            then bull {bulAlive = False}
-            else moveBullet sec bull) b)
+moveAllBullets sec game@Game{..} =
+    game {
+        bullets =
+            (map
+                (\bull ->
+                    if asteroidCollision (bulLoc bull) 3 asteroids
+                        then bull {bulAlive = False}
+                        else moveBullet sec bull
+                )
+                bullets
+            )
+    }
 
 
 moveBullet :: Time -> Bullet -> Bullet
@@ -95,20 +116,27 @@ moveBullet sec bull =
         then bull {bulAlive = False}
         else bull {bulLoc = (x1, y1)}
     where
-    (x, y) = bulLoc bull
-    (vx, vy) = bulVel bull
-    x1 = x + vx * sec
-    y1 = y + vy * sec
+        (x, y) = bulLoc bull
+        (vx, vy) = bulVel bull
+        x1 = x + vx * sec
+        y1 = y + vy * sec
 
 
 moveAllAsteroids :: Time -> GameState -> GameState
-moveAllAsteroids sec (Game t s a b) =
-    Game t s (map (\ast ->
-        if (bulletsCollision (astLoc ast) (astSize ast) b) ||
-            (shieldOn s) &&
-            (twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) (shieldRad s))
-            then ast {astAlive = False}
-            else moveAsteroid sec ast) a) b
+moveAllAsteroids sec game@Game{..} =
+    game {
+        asteroids =
+            (map
+                (\ast ->
+                    if (bulletsCollision (astLoc ast) (astSize ast) bullets) ||
+                        (shieldOn ship) &&
+                        (twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc ship) (shieldRad ship))
+                        then ast {astAlive = False}
+                        else moveAsteroid sec ast
+                )
+                asteroids
+            )
+    }
 
 
 moveAsteroid :: Time -> Asteroid -> Asteroid
@@ -128,7 +156,11 @@ moveObjects sec game = ((moveShip sec) . (moveAllBullets sec) . (moveAllAsteroid
 
 
 delObjects :: GameState -> GameState
-delObjects (Game t s a b) = Game t s (filter (\ast -> astAlive ast) a) (filter (\bul -> bulAlive bul) b)
+delObjects game@Game{..} =
+    game {
+        asteroids = (filter (\ast -> astAlive ast) asteroids),
+        bullets = (filter (\bul -> bulAlive bul) bullets)
+    }
 
 
 twoCirclesCollide :: Position -> Radius -> Position -> Radius -> Bool
@@ -180,7 +212,7 @@ initShip = Ship {
     shipAlive = True,
     shipAccel = False,
     shieldOn = False,
-    shieldAcc = 0,
+    shieldAcc = maxShieldPower,
     shieldRad = 40
 }
 
@@ -215,13 +247,25 @@ initBullet s = Bullet {
         velang = (xvel /norm * bulletSpeed, yvel /norm * bulletSpeed)
 
 
-initialState :: GameState
-initialState = Game 0 initShip [] []
+initGame :: GameState
+initGame = Game {
+    step = 0,
+    ship = initShip,
+    asteroids = [],
+    bullets = []
+}
 
 
-deathState :: GameState
-deathState = Game 0 deathShip [] []
+deathGame :: GameState
+deathGame = Game {
+    step = 0,
+    ship = deathShip,
+    asteroids = [],
+    bullets = []
+}
 
 
 updateGame :: Time -> GameState -> GameState
-updateGame sec (Game t s a b) = (addAsteroid . moveObjects sec . delObjects) (Game (t + 1) s a b)
+updateGame sec game = (addAsteroid . moveObjects sec . delObjects) (game {step = t + 1})
+    where
+        t = step game

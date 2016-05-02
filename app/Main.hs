@@ -15,4 +15,4 @@ fps = 60
 
 
 main :: IO ()
-main = play window background fps initialState renderPic handleKeys updateGame
+main = play window background fps initGame renderPic handleKeys updateGame

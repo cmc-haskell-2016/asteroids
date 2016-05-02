@@ -17,6 +17,7 @@ type Unit = Int
 
 data GameState =
     Game {
+        gameId :: Int,
         step :: Step,
         ship :: Ship,
         asteroids :: [Asteroid],
@@ -28,7 +29,7 @@ data GameState =
 
 
 data Ship = Ship {
-    shipSize :: Float,
+    shipSize :: Radius,
     shipLoc :: Position,
     shipVel :: ShipSpeed,
     shipAng :: Degree,
@@ -44,14 +45,14 @@ data Asteroid = Asteroid {
     astLoc :: Position,
     astAng :: Degree,
     astSize :: Radius,
-    astAlive :: Bool,
-    astVel :: Speed
+    astVel :: Speed,
+    astAlive :: Bool
 } deriving (Show, Eq)
 
 data Bullet = Bullet {
     bulLoc :: Position,
-    bulSize :: Float,
     bulAng :: Degree,
+    bulSize :: Radius,
     bulVel :: Speed,
     bulAlive :: Bool
 } deriving (Show, Eq)

@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Rendering (renderPic) where
 
 import Types
@@ -73,6 +74,6 @@ drawShield s =
 
 
 renderPic :: GameState -> Picture
-renderPic (Game _ s a b) =
+renderPic game@Game{..} =
     pictures
-        ((drawShip s) : (map drawAsteroid a) ++ (map drawBullet b) ++ [drawShield s])
+        ((drawShip ship) : (map drawAsteroid asteroids) ++ (map drawBullet bullets) ++ [drawShield ship])
