@@ -5,10 +5,23 @@ import Types
 import System.Random
 
 
-generateAstPosition :: Position -> [Float] -> Position
-generateAstPosition shipPos (x:xs) =
-    if (twoCirclesCollide shipPos mainShipSize (x, head xs) 50)
-        then generateAstPosition shipPos (tail xs)
+width :: Int
+width = 700
+
+height :: Int
+height = 500
+
+maxShieldPower:: Int
+maxShieldPower = 70
+
+bulletSpeed :: Float
+bulletSpeed = 200
+
+
+generateAstPosition :: Ship -> [Float] -> Position
+generateAstPosition ship (x:xs) =
+    if (twoCirclesCollide (shipLoc ship) (shipSize ship) (x, head xs) 50)
+        then generateAstPosition ship (tail xs)
         else (x, head xs)
 
 
@@ -16,7 +29,7 @@ addAsteroid :: GameState -> GameState
 addAsteroid (Game 60 s ast b) = Game 0 s (a : ast) b
     where
         genX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) ast)))
-        randLoc = generateAstPosition (shipLoc s) (randomRs ((-200)::Float, 200::Float) genX)
+        randLoc = generateAstPosition s (randomRs ((-200)::Float, 200::Float) genX)
         genY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) ast)))
         randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genY)
         randVel = (head randSpeed, head (tail randSpeed))
@@ -93,7 +106,7 @@ moveAllAsteroids sec (Game t s a b) =
     Game t s (map (\ast ->
         if (bulletsCollision (astLoc ast) (astSize ast) b) ||
             (shieldOn s) &&
-            (twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) shieldRad)
+            (twoCirclesCollide (astLoc ast) (astSize ast) (shipLoc s) (shieldRad s))
             then ast {astAlive = False}
             else moveAsteroid sec ast) a) b
 
@@ -138,7 +151,7 @@ asteroidCollision shipPos rad (a:as) =
 bulletsCollision :: Position -> Radius -> [Bullet] -> Bool
 bulletsCollision _ _ [] = False
 bulletsCollision shipPos rad (a:as) =
-    if (twoCirclesCollide shipPos rad (bulLoc a) bulletSize)
+    if (twoCirclesCollide shipPos rad (bulLoc a) (bulSize a))
         then True
         else bulletsCollision shipPos rad as
 
@@ -157,8 +170,9 @@ yCollision (_, y) rad =
     (y + rad >= fromIntegral height/2) || (y - rad <= -fromIntegral height/2)
 
 
-initialShip :: Ship
-initialShip = Ship {
+initShip :: Ship
+initShip = Ship {
+    shipSize = 20,
     shipLoc = (0, 0),
     shipAng = 0,
     rotation = 0,
@@ -166,24 +180,43 @@ initialShip = Ship {
     shipAlive = True,
     shipAccel = False,
     shieldOn = False,
-    shieldAcc = 0
+    shieldAcc = 0,
+    shieldRad = 40
 }
 
 
 deathShip :: Ship
 deathShip = Ship {
+    shipSize = 20,
     shipLoc = (0, 0),
     shipAng = 0,
     rotation = 0,
     shipVel = 0,
     shipAlive = False,
     shipAccel = False,
-    shieldOn = False
+    shieldOn = False,
+    shieldAcc = 0,
+    shieldRad = 40
 }
 
 
+initBullet :: Ship -> Bullet
+initBullet s = Bullet {
+    bulLoc = shipLoc s,
+    bulSize = 3,
+    bulAng = shipAng s,
+    bulAlive = True,
+    bulVel = velang
+}
+    where
+        yvel = cos ((shipAng s) * pi / 180)
+        xvel = sin ((shipAng s) * pi / 180)
+        norm = sqrt (xvel * xvel + yvel * yvel)
+        velang = (xvel /norm * bulletSpeed, yvel /norm * bulletSpeed)
+
+
 initialState :: GameState
-initialState = Game 0 initialShip [] []
+initialState = Game 0 initShip [] []
 
 
 deathState :: GameState

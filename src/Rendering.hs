@@ -6,35 +6,39 @@ import Graphics.Gloss.Rendering
 import Graphics.Gloss
 
 
+shipColor :: Color
+shipColor = light (light red)
+
+
 drawShip :: Ship -> Picture
-drawShip ship = if shipAlive ship
+drawShip s = if (shipAlive s)
     then
         pictures[
             translate x y $
             color shipColor $
             rotate phi $
-            polygon [(10, -5), (0, 0), (0, mainShipSize)],
+            polygon [(10, -5), (0, 0), (0, (shipSize s))],
             translate x y $
             color shipColor $
             rotate phi $
-            polygon [(-10, -5), (0, 0), (0, mainShipSize)]]
+            polygon [(-10, -5), (0, 0), (0, (shipSize s))]]
     else
         scale 10 10 (pictures[
             translate x y $
             color shipColor $
             rotate phi $
-            polygon [(10, -5), (0, 0), (0, mainShipSize)],
+            polygon [(10, -5), (0, 0), (0, (shipSize s))],
             translate x y $
             color shipColor $
             rotate phi $
-            polygon [(-10, -5), (0, 0), (0, mainShipSize)],
+            polygon [(-10, -5), (0, 0), (0, (shipSize s))],
             translate (-18) (-20) $
             scale 0.05 0.05 $
             color red $
             text "Game Over"])
     where
-        (x, y) = shipLoc ship
-        phi = shipAng ship
+        (x, y) = shipLoc s
+        phi = shipAng s
 
 
 drawAsteroid :: Asteroid -> Picture
@@ -57,15 +61,15 @@ drawBullet bull =
 
 
 drawShield :: Ship -> Picture
-drawShield ship =
-    if shieldOn ship then
+drawShield s =
+    if shieldOn s then
         translate x y $
         color shipColor $
-        circle shieldRad
+        circle (shieldRad s)
     else
         blank
     where
-        (x, y) = shipLoc ship
+        (x, y) = shipLoc s
 
 
 renderPic :: GameState -> Picture

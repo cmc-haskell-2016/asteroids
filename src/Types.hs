@@ -1,7 +1,5 @@
 module Types where
 
-import Graphics.Gloss
-
 ---------------------------------------------
 --Types
 
@@ -14,51 +12,23 @@ type Time = Float
 type Step = Int
 type Unit = Int
 
---------------------------------------------
--- Constants
+--speedShip :: Float
+--speedShip = 100
 
-maxShieldPower:: Int
-maxShieldPower = 70
+data GameState =
+    Game {
+        step :: Step,
+        ship :: Ship,
+        asteroids :: [Asteroid],
+        bullets :: [Bullet]
+    }
+    | GameOver
+    | Settings
+    | Pause
 
-mainShipSize:: Float
-mainShipSize = 20
-
-speedShip :: Float
-speedShip = 100
-
-bulletSize :: Float
-bulletSize = 3
-
-shieldRad :: Float
-shieldRad = 40
-
-width :: Int
-width = 700
-
-height :: Int
-height = 500
-
-offsetX :: Int
-offsetX = 500
-
-offsetY :: Int
-offsetY = 100
-
-background :: Color
-background = makeColorI 25 25 112 0
-
-fps :: Int
-fps = 60
-
-bulletSpeed :: Float
-bulletSpeed = 200
-
-shipColor :: Color
-shipColor = light (light red)
-
-data GameState = Game Step Ship [Asteroid] [Bullet] deriving (Show, Eq)
 
 data Ship = Ship {
+    shipSize :: Float,
     shipLoc :: Position,
     shipVel :: ShipSpeed,
     shipAng :: Degree,
@@ -66,7 +36,8 @@ data Ship = Ship {
     shipAlive :: Bool,
     shipAccel :: Bool,
     shieldOn :: Bool,
-    shieldAcc:: Unit
+    shieldAcc:: Unit,
+    shieldRad :: Float
 } deriving (Show, Eq)
 
 data Asteroid = Asteroid {
@@ -79,6 +50,7 @@ data Asteroid = Asteroid {
 
 data Bullet = Bullet {
     bulLoc :: Position,
+    bulSize :: Float,
     bulAng :: Degree,
     bulVel :: Speed,
     bulAlive :: Bool
