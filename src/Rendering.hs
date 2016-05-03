@@ -1,12 +1,16 @@
 {-# LANGUAGE RecordWildCards #-}
-module Rendering (renderPic) where
+module Rendering
+(
+    renderPic
+) where
 
-import Types
-import GraphObjects
 import Game
+import GraphObject
+import Ship
 
 import Graphics.Gloss.Rendering
 import Graphics.Gloss
+
 
 drawShield :: Ship -> Picture
 drawShield s =
@@ -24,3 +28,17 @@ renderPic :: GameState -> Picture
 renderPic game@Game{..} =
     pictures
         ((draw ship) : (map draw asteroids) ++ (map draw bullets) ++ [drawShield ship])
+renderPic GameOver =
+    scale 10 10 (pictures[
+        translate 0 0 $
+        color shipColor $
+        rotate 0 $
+        polygon [(10, -5), (0, 0), (0, 20)],
+        translate 0 0 $
+        color shipColor $
+        rotate 0 $
+        polygon [(-10, -5), (0, 0), (0, 20)],
+        translate (-18) (-20) $
+        scale 0.05 0.05 $
+        color red $
+        text "Game Over"])

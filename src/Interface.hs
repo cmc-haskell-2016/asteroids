@@ -1,9 +1,9 @@
 {-# LANGUAGE RecordWildCards #-}
 module Interface where
 
-import Types
 import Game
-import GraphObjects
+import Ship
+import Bullet
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
@@ -57,5 +57,3 @@ handleKeys (EventKey (SpecialKey KeySpace) Down _ _) game@Game{..} =
         bullets = (initBullet ship) : bullets
     }
 handleKeys _ game = game
---handleKeys (EventKey (SpecialKey KeyUp) Down _ _) game = Game t ((ship game) {shipVel = (shipVel (ship game)) + speedShip}) a b
---handleKeys (EventKey (SpecialKey KeyUp) Up _ _) game = Game t ((ship game) {shipVel = (shipVel (ship game)) - speedShip}) a b
