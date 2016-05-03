@@ -3,10 +3,10 @@ module Interface where
 
 import Types
 import Game
+import GraphObjects
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-
 
 
 offsetX :: Int

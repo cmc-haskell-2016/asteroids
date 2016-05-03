@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   ghc-options:         -Wall
   hs-source-dirs:      src
-  exposed-modules:     Interface, Types, Rendering, Game
+  exposed-modules:     Interface, Types, Rendering, Game, GraphObjects
   build-depends:       base >= 4.7 && < 5,
                        gloss == 1.9.4.1,
                        gloss-rendering,

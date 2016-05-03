@@ -2,8 +2,22 @@
 module Game where
 
 import Types
+import GraphObjects
 
 import System.Random
+
+
+data GameState =
+    Game {
+        gameId :: Int,
+        step :: Step,
+        ship :: Ship,
+        asteroids :: [Asteroid],
+        bullets :: [Bullet]
+    }
+    | GameOver
+    | Settings
+    | Pause
 
 
 width :: Int
