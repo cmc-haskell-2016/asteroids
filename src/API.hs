@@ -1,9 +1,14 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
-
-module ServerAPI where
+module API
+(
+    serveGame,
+    ServerAPI,
+    GameAPI
+) where
 
 import Types
+import Game
 
 import Servant
 import Control.Monad.Trans.Except
@@ -12,18 +17,21 @@ import Control.Monad.Trans.Except
 
 type ServantResponse a = ExceptT ServantErr IO a
 
-type ServerAPI = "game" :> GameAPI
+
+type ServerAPI
+    = "game" :> GameAPI
+
 
 type GameAPI
-    = "create" :> Get '[JSON] GameId
+    = "new" :> Get '[JSON] GameId
     :<|> "save" :> Get '[JSON] GameId
 
 
 serveGame :: Server GameAPI
-serveGame = createGame :<|> saveGame
+serveGame = newGame :<|> saveGame
 
-createGame :: ServantResponse GameId
-createGame = return 1
+newGame :: ServantResponse GameId
+newGame = return 1
 
 saveGame :: ServantResponse GameId
 saveGame = return 0

@@ -1,8 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
-
 module Main (main) where
 
-import ServerAPI
+import API
 
 import Servant
 import Network.Wai (Application)
