@@ -1,9 +1,7 @@
 module Types where
 
 
----------------------------------------------
---Types
-
+--Game types
 type Radius = Float
 type Position = (Float, Float)
 type Degree = Float
@@ -13,6 +11,16 @@ type Time = Float
 type Step = Int
 type Unit = Int
 type GameId = Int
+
+
+--Networking types
+type Ip = String
+type Port = Int
+
+
+
+
+
 
 --speedShip :: Float
 --speedShip = 100

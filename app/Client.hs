@@ -11,6 +11,7 @@ import Servant
 import Servant.Client
 import Network.HTTP.Client hiding (Proxy)
 import Control.Monad.Trans.Except
+import System.Environment
 --import Graphics.Gloss.Interface.Pure.Game
 
 
@@ -32,30 +33,35 @@ data ClientAPI = ClientAPI {
 }
 
 
-serverUrl :: BaseUrl
-serverUrl = BaseUrl Http "localhost" 8080 ""
+serverUrl :: Ip -> Port -> BaseUrl
+serverUrl ip port = BaseUrl Http ip port ""
 
 
 mkAPIClient :: BaseUrl -> Manager -> Client ServerAPI
 mkAPIClient = client (Proxy :: Proxy ServerAPI)
 
 
-mkClientWithManager :: IO ClientAPI
-mkClientWithManager = do
-    manager <- newManager defaultManagerSettings
-    mkAsteroidsClient manager
-
-
-mkAsteroidsClient :: Manager -> IO ClientAPI
-mkAsteroidsClient manager = return ClientAPI{..}
+mkAsteroidsClient :: Ip -> Port -> Manager -> IO ClientAPI
+mkAsteroidsClient ip port manager = return ClientAPI{..}
   where
-    gameClient = mkAPIClient serverUrl manager
+    gameClient = mkAPIClient (serverUrl ip port) manager
 
     (new :<|> save) = gameClient
 
 
+mkClientWithManager :: Ip -> Port -> IO ClientAPI
+mkClientWithManager ip port = do
+    manager <- newManager defaultManagerSettings
+    mkAsteroidsClient ip port manager
+
+
+main :: IO ()
 main = do
-    c <- mkClientWithManager
+    argv <- getArgs
+    let ip = head argv
+    let http_port = (read . head . tail) argv :: Int
+    let ws_port = (read . head . tail . tail) argv :: Int
+    c <- mkClientWithManager ip http_port
     res <- runExceptT (save c)
     print res
 --main = play window background fps initGame renderPic handleKeys updateGame
