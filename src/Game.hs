@@ -1,4 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Game
 (
     GameState(..),
@@ -18,12 +20,17 @@ import Universe
 import Collisions
 
 import System.Random
+import Data.Aeson
+import GHC.Generics (Generic)
 
 --add alternative states here, like 'pause', 'settings' and so on
 data GameState =
     InGame Universe
     | GameOver
 
+
+instance ToJSON GameState
+instance FromJSON GameState
 
 generateAstPosition :: Ship -> [Float] -> Position
 generateAstPosition ship (x:y:xs)

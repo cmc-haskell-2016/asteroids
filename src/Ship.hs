@@ -1,4 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Ship
 (
     Ship(..),
@@ -12,6 +14,8 @@ import Types
 
 import Graphics.Gloss.Rendering
 import Graphics.Gloss
+import Data.Aeson
+import GHC.Generics (Generic)
 
 
 shipColor :: Color
@@ -35,8 +39,10 @@ data Ship = Ship {
     shieldOn :: Bool,
     shieldAcc:: Unit,
     shieldRad :: Float
-} deriving (Show, Eq)
+} deriving (Show, Eq, Generic)
 
+instance ToJSON Ship
+instance FromJSON Ship
 
 accelerate :: Float -> Ship -> Ship
 accelerate sec s
