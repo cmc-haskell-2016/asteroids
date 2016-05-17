@@ -30,6 +30,7 @@ sendAction :: Action -> GameState-> IO GameState
 -- TODO
 sendAction action gs = return gs
 
+
 handleKeys :: Event -> GameState -> IO GameState
 handleKeys (EventKey (SpecialKey KeyUp) Down _ _) = sendAction EnableAcceleration
 handleKeys (EventKey (SpecialKey KeyUp) Up _ _) = sendAction DisableAcceleration

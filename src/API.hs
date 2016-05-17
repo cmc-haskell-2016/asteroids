@@ -1,10 +1,10 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE OverloadedStrings #-}
 module API where
 
 import Types
 import Game
+-- import ServerSide
 
 import Servant
 
