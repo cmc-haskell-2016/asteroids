@@ -2,13 +2,13 @@
 module Ship
 (
     Ship(..),
+    accelerate,
     initShip,
     shipColor,
     updateShip
 ) where
 
 import Types
-import GraphObject
 
 import Graphics.Gloss.Rendering
 import Graphics.Gloss
@@ -33,34 +33,6 @@ data Ship = Ship {
     shieldAcc:: Unit,
     shieldRad :: Float
 } deriving (Show, Eq)
-
-
-instance GraphObject Ship where
-    draw s =
-        pictures[
-            translate x y $
-            color shipColor $
-            rotate phi $
-            polygon [(10, -5), (0, 0), (0, (shipSize s))],
-            translate x y $
-            color shipColor $
-            rotate phi $
-            polygon [(-10, -5), (0, 0), (0, (shipSize s))]]
-        where
-            (x, y) = shipLoc s
-            phi = shipAng s
-
-    move sec s =
-        accelerate sec s {
-            shipAng = newAng,
-            shipLoc = (x1, y1)
-        }
-        where
-            (x, y) = shipLoc s
-            v = shipVel s
-            newAng = (shipAng s) + ((rotation s) / 1.5)
-            x1 = x + v* (sin (newAng*pi/180)) * sec
-            y1 = y + v* (cos (newAng*pi/180)) * sec
 
 
 accelerate :: Float -> Ship -> Ship

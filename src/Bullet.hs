@@ -6,9 +6,7 @@ module Bullet
 
 import Types
 import Ship
-import GraphObject
 
-import Graphics.Gloss
 
 bulletSpeed :: Float
 bulletSpeed = 200
@@ -22,24 +20,6 @@ data Bullet = Bullet {
     bulAlive :: Bool
 } deriving (Show, Eq)
 
-
-instance GraphObject Bullet where
-    draw bull =
-            translate x y $
-            color red $
-            circleSolid 3
-        where
-            (x, y) = bulLoc bull
-
-    move sec bull =
-        bull {
-            bulLoc = (x1, y1)
-        }
-        where
-            (x, y) = bulLoc bull
-            (vx, vy) = bulVel bull
-            x1 = x + vx * sec
-            y1 = y + vy * sec
 
 
 initBullet :: Ship -> Bullet
