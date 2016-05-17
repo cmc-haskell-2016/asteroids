@@ -25,7 +25,7 @@ drawShield s =
 
 
 renderPic :: GameState -> Picture
-renderPic game@Game{..} =
+renderPic (InGame u@Universe{..}) =
     pictures
         ((draw ship) : (map draw asteroids) ++ (map draw bullets) ++ [drawShield ship])
 renderPic GameOver =

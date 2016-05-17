@@ -2,10 +2,11 @@
 module Game
 (
     GameState(..),
+    Universe(..),
     updateGame,
     width,
     height,
-    initGame
+    initUniverse
 ) where
 
 import Types
@@ -18,14 +19,15 @@ import System.Random
 
 --add alternative states here, like 'pause', 'settings' and so on
 data GameState =
-    Game {
-        step :: Step,
-        ship :: Ship,
-        asteroids :: [Asteroid],
-        bullets :: [Bullet]
-    }
+    InGame Universe
     | GameOver
 
+data Universe = Universe {
+    step :: Step,
+    ship :: Ship,
+    asteroids :: [Asteroid],
+    bullets :: [Bullet]
+}
 
 width :: Int
 width = 700
@@ -34,21 +36,13 @@ height :: Int
 height = 500
 
 
-initGame :: GameState
-initGame = Game {
+initUniverse :: Universe
+initUniverse = Universe {
     step = 0,
     ship = initShip,
     asteroids = [],
     bullets = []
 }
-
-
-checkGameOver :: GameState -> GameState
-checkGameOver game@Game{..} =
-    if (shipAlive ship)
-        then game
-        else GameOver
-checkGameOver GameOver = GameOver
 
 
 generateAstPosition :: Ship -> [Float] -> Position
@@ -58,16 +52,16 @@ generateAstPosition ship (x:xs) =
         else (x, head xs)
 
 
-addAsteroid :: GameState -> GameState
-addAsteroid game@Game{..} =
+addAsteroid :: Universe -> Universe
+addAsteroid u@Universe{..} =
     if (step == 60)
     then
-        game {
+        u {
             step = 0,
             asteroids = (a : asteroids)
         }
     else
-        game
+        u
     where
         genX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) asteroids)))
         randLoc = generateAstPosition ship (randomRs ((-200)::Float, 200::Float) genX)
@@ -78,20 +72,18 @@ addAsteroid game@Game{..} =
         randInt = take 1 (randomRs (10::Float, 50::Float) genAst)
         randRad = head randInt
         a = Asteroid {astLoc = randLoc, astAng = 0, astRad = randRad, astAlive = True, astVel = randVel}
-addAsteroid GameOver = GameOver
 
 
 --check collisions for all objects
-checkCollisions :: GameState -> GameState
-checkCollisions game@Game{..} =
-    (checkShipCollision . checkBulletsCollisions . checkAsteroidsCollisions) game
-checkCollisions GameOver = GameOver
+checkCollisions :: Universe -> Universe
+checkCollisions u@Universe{..} =
+    (checkShipCollision . checkBulletsCollisions . checkAsteroidsCollisions) u
 
 
 --check collisions for asteroids with other objects
-checkAsteroidsCollisions :: GameState -> GameState
-checkAsteroidsCollisions game@Game{..} =
-    game {
+checkAsteroidsCollisions :: Universe -> Universe
+checkAsteroidsCollisions u@Universe{..} =
+    u {
         asteroids =
             (map
                 (\ast ->
@@ -108,13 +100,12 @@ checkAsteroidsCollisions game@Game{..} =
     where
         sLoc = shipLoc ship
         sRad = shieldRad ship
-checkAsteroidsCollisions GameOver = GameOver
 
 
 --check collisions for bullets with other objects
-checkBulletsCollisions :: GameState -> GameState
-checkBulletsCollisions game@Game{..} =
-    game {
+checkBulletsCollisions :: Universe -> Universe
+checkBulletsCollisions u@Universe{..} =
+    u {
         bullets =
             (map
                 (\bull ->
@@ -125,19 +116,17 @@ checkBulletsCollisions game@Game{..} =
                 bullets
             )
     }
-checkBulletsCollisions GameOver = GameOver
 
 
 --check collisions for ship with other objects
-checkShipCollision :: GameState -> GameState
-checkShipCollision game@Game{..} =
+checkShipCollision :: Universe -> Universe
+checkShipCollision u@Universe{..} =
     if wallCollision (shipLoc ship) 20
     || ((collisionWithAsteroids (shipLoc ship) 20 asteroids) && (not (shieldOn ship)))
     then
-        game { ship = ship {shipAlive = False} }
+        u { ship = ship {shipAlive = False} }
     else
-        game
-checkShipCollision GameOver = GameOver
+        u
 
 
 --check collisions for an object with all asteroids
@@ -182,37 +171,38 @@ twoCirclesCollide (x1, y1) rad1 (x2, y2) rad2 =
         dist = sqrt ((x1-x2)^2 + (y1-y2)^2)
 
 
-moveAllObjects :: Time -> GameState -> GameState
-moveAllObjects sec game@Game{..} =
-    game {
+moveAllObjects :: Time -> Universe -> Universe
+moveAllObjects sec u@Universe{..} =
+    u {
         ship = move sec ship,
         asteroids = map (move sec) asteroids,
         bullets = map (move sec) bullets
     }
-moveAllObjects _ GameOver = GameOver
 
 
-delObjects :: GameState -> GameState
-delObjects game@Game{..} =
-    game {
+delObjects :: Universe -> Universe
+delObjects u@Universe{..} =
+    u {
         asteroids = (filter (\ast -> astAlive ast) asteroids),
         bullets = (filter (\bul -> bulAlive bul) bullets)
     }
-delObjects GameOver = GameOver
 
 
-updateObjects :: GameState -> GameState
-updateObjects game@Game{..} =
-    game {
+updateObjects :: Universe -> Universe
+updateObjects u@Universe{..} =
+    u {
         ship = updateShip ship
     }
-updateObjects GameOver = GameOver
 
 
 updateGame :: Time -> GameState -> GameState
-updateGame sec game@Game{..} =
-    (addAsteroid . delObjects . checkGameOver . checkCollisions . updateObjects . moveAllObjects sec)
-    game {
-        step = step + 1
-    }
 updateGame _ GameOver = GameOver
+updateGame sec (InGame u@Universe{..})
+    | not $ shipAlive ship = GameOver
+    | otherwise =
+        InGame $ chain $ u {
+            step = step + 1
+        }
+    where
+        chain =
+            (addAsteroid . delObjects . checkCollisions . updateObjects . moveAllObjects sec)
