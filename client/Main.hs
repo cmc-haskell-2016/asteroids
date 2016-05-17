@@ -104,7 +104,6 @@ main = do
 
     shared <- atomically $ newTVar new_game
 
-    -- WS.runClient ip http_port "/service/open_socket" (app shared)
     WS.runClient ip http_port "/service/open_socket" $ \conn -> do
         putStrLn "Connection successful"
         _ <- forkIO (handleUpdates (ClientState shared conn))
