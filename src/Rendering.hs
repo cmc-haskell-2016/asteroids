@@ -24,11 +24,13 @@ drawShield s =
         (x, y) = shipLoc s
 
 
-renderPic :: GameState -> Picture
-renderPic (InGame u@Universe{..}) =
+renderPic :: GameState -> IO Picture
+renderPic game@Game{..} =
+    return $
     pictures
         ((draw ship) : (map draw asteroids) ++ (map draw bullets) ++ [drawShield ship])
 renderPic GameOver =
+    return $
     scale 10 10 (pictures[
         translate 0 0 $
         color shipColor $

@@ -27,7 +27,8 @@ library
                        Universe,
                        Collisions,
                        ServerAPI,
-                       API
+                       API,
+                       ServerSide
   build-depends:       base >= 4.7 && < 5,
                        gloss == 1.9.4.1,
                        gloss-rendering,
@@ -45,7 +46,9 @@ library
                        servant-docs,
                        servant,
                        aeson,
-                       network
+                       network,
+                       stm,
+                       bytestring
   default-language:    Haskell2010
 
 executable server

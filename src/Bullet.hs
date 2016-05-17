@@ -9,14 +9,6 @@ module Bullet
 import Types
 import Ship
 
-<<<<<<< 55f2461b5b33552c6d92867d2be011fc7b4f9a48
-=======
-import Graphics.Gloss
-import Data.Aeson
-import GHC.Generics (Generic)
-
->>>>>>> Added WebSockets
-
 bulletSpeed :: Float
 bulletSpeed = 300
 
@@ -26,11 +18,14 @@ data Bullet = Bullet {
     bulRad :: Radius,
     bulVel :: Speed,
     bulAlive :: Bool
-} deriving (Show, Eq, Generic)
+} deriving (Show, Eq, Read, Generic)
 
 instance ToJSON Bullet
 instance FromJSON Bullet
 
+instance WebSocketsData Bullet where
+    fromLazyByteString = read . BL8.unpack
+    toLazyByteString   = BL8.pack . show
 
 
 initBullet :: Ship -> Bullet

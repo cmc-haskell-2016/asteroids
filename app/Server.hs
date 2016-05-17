@@ -2,6 +2,7 @@
 module Main (main) where
 
 import API
+import ServerSide
 
 import Servant
 import Network.Wai (Application)

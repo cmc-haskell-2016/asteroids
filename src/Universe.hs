@@ -11,7 +11,7 @@ data Universe = Universe {
     ship :: Ship,
     asteroids :: [Asteroid],
     bullets :: [Bullet]
-}
+} deriving (Show, Read, Generic)
 
 initUniverse :: Universe
 initUniverse = Universe {

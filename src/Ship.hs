@@ -16,6 +16,8 @@ import Graphics.Gloss.Rendering
 import Graphics.Gloss
 import Data.Aeson
 import GHC.Generics (Generic)
+import Network.WebSockets
+import qualified Data.ByteString.Lazy.Char8 as BL8
 
 
 shipColor :: Color
@@ -39,10 +41,15 @@ data Ship = Ship {
     shieldOn :: Bool,
     shieldAcc:: Unit,
     shieldRad :: Float
-} deriving (Show, Eq, Generic)
+} deriving (Show, Eq, Read, Generic)
 
 instance ToJSON Ship
 instance FromJSON Ship
+
+instance WebSocketsData Ship where
+    fromLazyByteString = read . BL8.unpack
+    toLazyByteString   = BL8.pack . show
+
 
 accelerate :: Float -> Ship -> Ship
 accelerate sec s

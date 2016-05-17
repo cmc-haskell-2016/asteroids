@@ -15,7 +15,7 @@ import Control.Concurrent.STM
 import Control.Monad.Trans.Except
 import qualified Data.Text.IO as T
 import Data.ByteString.Lazy.Internal (ByteString)
-import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss.Interface.IO.Game
 import Network.HTTP.Client hiding (Proxy)
 import Network.HTTP.Media.MediaType (MediaType)
 import qualified Network.HTTP.Types.Header as H
@@ -39,6 +39,11 @@ data ClientAPI = ClientAPI {
     new :: ServantResponse GameState,
     save :: ServantResponse GameId,
     open_socket :: Method -> ServantResponse (Int, ByteString, MediaType, [H.Header], Response ByteString)
+}
+
+data ClientState = ClientState {
+    game :: TVar GameState,
+    conn :: WS.Connection
 }
 
 
@@ -70,21 +75,22 @@ getServerResponse (Left _) = die "Unexpected server response"
 getServerResponse (Right r) = return r
 
 
-getUpdatedGameState :: Time -> GameState -> GameState
-getUpdatedGameState _ GameOver = GameOver
-getUpdatedGameState _ g = g
+getUpdatedGameState :: Time -> GameState -> IO GameState
+getUpdatedGameState _ GameOver = return GameOver
+getUpdatedGameState _ g = return g
     --get gamestate from shared memory
 
-app :: TVar a -> WS.ClientApp ()
-app shared conn = do
-    _ <- forkIO $ forever $ do
-        putStrLn "qwe"
-        msg <- WS.receiveData conn
-        T.putStrLn msg
-        -- get data from server
-        -- atomically $ writeTVar shared game
 
-    putStrLn "Connection successful"
+handleUpdates :: ClientState -> IO ()
+handleUpdates state@ClientState{..} = do
+    _ <- forkIO $ forever $ do
+        -- msg <- WS.receiveData conn
+        -- T.putStrLn msg
+        game_state <- WS.receiveData conn
+        atomically $ writeTVar game game_state
+
+    return ()
+
 
 main :: IO ()
 main = do
@@ -98,6 +104,9 @@ main = do
 
     shared <- atomically $ newTVar new_game
 
-    WS.runClient ip http_port "/service/open_socket" (app shared)
-
-    play window background fps new_game renderPic handleKeys getUpdatedGameState
+    -- WS.runClient ip http_port "/service/open_socket" (app shared)
+    WS.runClient ip http_port "/service/open_socket" $ \conn -> do
+        putStrLn "Connection successful"
+        _ <- forkIO (handleUpdates (ClientState shared conn))
+        playIO window background fps new_game renderPic handleKeys getUpdatedGameState
+    putStrLn "Finished"
