@@ -29,7 +29,7 @@ import System.Exit
 --add alternative states here, like 'pause', 'settings' and so on
 data GameState =
     InGame Universe
-    | GameOver
+    | GameOver deriving (Generic, Read, Show)
 
 instance ToJSON GameState
 instance FromJSON GameState
@@ -37,6 +37,7 @@ instance FromJSON GameState
 instance WebSocketsData GameState where
     fromLazyByteString = read . BL8.unpack
     toLazyByteString   = BL8.pack . show
+
 
 generateAstPosition :: Ship -> [Float] -> Position
 generateAstPosition ship (x:y:xs)
@@ -78,35 +79,9 @@ checkCollisions u@Universe{..} =
     }
 
 
---check collisions for an object with the wall
-wallCollision :: Position -> Radius -> Bool
-wallCollision pos rad = xWallCollision pos rad || yWallCollision pos rad
-
-
-xWallCollision :: Position -> Radius -> Bool
-xWallCollision (x, _) rad =
-    (x + rad >= fromIntegral width/2) || (x - rad <= -fromIntegral width/2)
-
-
-yWallCollision :: Position -> Radius -> Bool
-yWallCollision (_, y) rad =
-    (y + rad >= fromIntegral height/2) || (y - rad <= -fromIntegral height/2)
-
-
-twoCirclesCollide :: Position -> Radius -> Position -> Radius -> Bool
-twoCirclesCollide (x1, y1) rad1 (x2, y2) rad2 =
-    if dist > rad1 + rad2
-        then False
-        else True
-    where
-        dist_x = (x1-x2)^2
-        dist_y = (y1-y2)^2
-        dist = sqrt (dist_x + dist_y)
-
-
-moveAllObjects :: Time -> GameState -> GameState
-moveAllObjects sec game@Game{..} =
-    game {
+moveAllObjects :: Time -> Universe -> Universe
+moveAllObjects sec u@Universe{..} =
+    u {
         ship = move sec ship,
         asteroids = map (move sec) asteroids,
         bullets = map (move sec) bullets

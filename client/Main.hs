@@ -8,6 +8,7 @@ import Types
 import API
 import Rendering
 import Interface
+import ClientSide
 
 import Control.Monad (forever)
 import Control.Concurrent
@@ -41,11 +42,6 @@ data ClientAPI = ClientAPI {
     open_socket :: Method -> ServantResponse (Int, ByteString, MediaType, [H.Header], Response ByteString)
 }
 
-data ClientState = ClientState {
-    game :: TVar GameState,
-    conn :: WS.Connection
-}
-
 
 serverUrl :: Ip -> Port -> BaseUrl
 serverUrl ip port = BaseUrl Http ip port ""
@@ -75,17 +71,13 @@ getServerResponse (Left _) = die "Unexpected server response"
 getServerResponse (Right r) = return r
 
 
-getUpdatedGameState :: Time -> GameState -> IO GameState
-getUpdatedGameState _ GameOver = return GameOver
-getUpdatedGameState _ g = return g
-    --get gamestate from shared memory
+getUpdatedGameState :: Time -> ClientState -> IO ClientState
+getUpdatedGameState _ cs = return cs
 
 
 handleUpdates :: ClientState -> IO ()
 handleUpdates state@ClientState{..} = do
     _ <- forkIO $ forever $ do
-        -- msg <- WS.receiveData conn
-        -- T.putStrLn msg
         game_state <- WS.receiveData conn
         atomically $ writeTVar game game_state
 
@@ -105,7 +97,10 @@ main = do
     shared <- atomically $ newTVar new_game
 
     WS.runClient ip http_port "/service/open_socket" $ \conn -> do
+        let new_state = (ClientState shared conn)
         putStrLn "Connection successful"
-        _ <- forkIO (handleUpdates (ClientState shared conn))
-        playIO window background fps new_game renderPic handleKeys getUpdatedGameState
+        _ <- forkIO (handleUpdates new_state)
+        playIO window background fps new_state renderPicIO handleKeys getUpdatedGameState
     putStrLn "Finished"
+
+    where

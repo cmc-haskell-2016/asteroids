@@ -2,9 +2,13 @@
 module Interface where
 
 import Game
+import ClientSide
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
+import Network.WebSockets
+import qualified Data.ByteString.Lazy.Char8 as BL8
+import System.Exit
 
 
 data Action =
@@ -14,7 +18,12 @@ data Action =
     | RotateRight
     | EnableShield
     | DisableShield
-    | Shoot
+    | Shoot deriving (Read, Show)
+
+instance WebSocketsData Action where
+    fromLazyByteString = read . BL8.unpack
+    toLazyByteString   = BL8.pack . show
+
 
 offsetX :: Int
 offsetX = 500
@@ -26,12 +35,15 @@ window :: Display
 window = InWindow "ASTEROID BATTLE by Team Stolyarov" (width, height) (offsetX, offsetY)
 
 
-sendAction :: Action -> GameState-> IO GameState
+sendAction :: Action -> ClientState-> IO ClientState
 -- TODO
-sendAction action gs = return gs
+sendAction action cs = do
+    sendBinaryData (conn cs) action
+    return cs
 
 
-handleKeys :: Event -> GameState -> IO GameState
+handleKeys :: Event -> ClientState -> IO ClientState
+handleKeys (EventKey (SpecialKey KeyEsc) Down _ _) = return exitSuccess
 handleKeys (EventKey (SpecialKey KeyUp) Down _ _) = sendAction EnableAcceleration
 handleKeys (EventKey (SpecialKey KeyUp) Up _ _) = sendAction DisableAcceleration
 handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) = sendAction RotateLeft

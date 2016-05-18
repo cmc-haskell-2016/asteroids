@@ -7,6 +7,11 @@ module Asteroid
 
 import Types
 
+import Data.Aeson
+import qualified Data.ByteString.Lazy.Char8 as BL8
+import Network.WebSockets
+import GHC.Generics (Generic)
+
 data Asteroid = Asteroid {
     astLoc :: Position,
     astAng :: Degree,

@@ -1,17 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
-
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeOperators #-}
 module ServerSide where
 
 
 import API
 import Game
 import Types
+import Interface
 
 import Control.Monad (forever)
 import Control.Monad.Trans.Except
 import Control.Concurrent
 import Control.Concurrent.STM
-import Data.Text
+-- import Data.Text
 import Network.Wai.Handler.WebSockets
 import Network.HTTP.Types.Status
 import Network.Wai
@@ -26,7 +29,7 @@ serveGame :: Server GameAPI
 serveGame = newGame :<|> saveGame
 
 newGame :: ServantResponse GameState
-newGame = return initGame
+newGame = return (InGame initUniverse)
 
 saveGame :: ServantResponse GameId
 saveGame = return 0
@@ -44,9 +47,8 @@ openWebSocket =
             putStrLn "new client"
 
             forever $ do
-                -- to delete
-                threadDelay(1000)
-                -- action <- WS.receiveData conn
+                action <- WS.receiveData conn
+                handleActions action
                 return ()
                 -- process user's action
 
@@ -56,6 +58,8 @@ openWebSocket =
             respond $ responseLBS status400 [] "Not a WebSocket request"
 
 
+handleActions :: Action -> IO ()
+handleActions action = print action
 -- serverShipAccel :: GameState -> GameState
 -- serverShipAccel GameOver = GameOver
 -- serverShipAccel game@Game{..} = do

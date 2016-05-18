@@ -1,15 +1,17 @@
 {-# LANGUAGE RecordWildCards #-}
 module Rendering
 (
-    renderPic
+    renderPicIO
 ) where
 
 import Game
 import GraphObject
 import Ship
+import ClientSide
 
 import Graphics.Gloss.Rendering
 import Graphics.Gloss
+import Control.Concurrent.STM
 
 
 drawShield :: Ship -> Picture
@@ -24,13 +26,11 @@ drawShield s =
         (x, y) = shipLoc s
 
 
-renderPic :: GameState -> IO Picture
-renderPic game@Game{..} =
-    return $
+renderPic :: GameState -> Picture
+renderPic (InGame u@Universe{..}) =
     pictures
         ((draw ship) : (map draw asteroids) ++ (map draw bullets) ++ [drawShield ship])
 renderPic GameOver =
-    return $
     scale 10 10 (pictures[
         translate 0 0 $
         color shipColor $
@@ -44,3 +44,9 @@ renderPic GameOver =
         scale 0.05 0.05 $
         color red $
         text "Game Over"])
+
+
+renderPicIO :: ClientState -> IO Picture
+renderPicIO cs = do
+    gs <- readTVarIO (game cs)
+    return $ renderPic gs

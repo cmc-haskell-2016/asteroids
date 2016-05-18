@@ -9,6 +9,11 @@ module Bullet
 import Types
 import Ship
 
+import Data.Aeson
+import qualified Data.ByteString.Lazy.Char8 as BL8
+import Network.WebSockets
+import GHC.Generics (Generic)
+
 bulletSpeed :: Float
 bulletSpeed = 300
 

@@ -26,9 +26,9 @@ library
                        Bullet,
                        Universe,
                        Collisions,
-                       ServerAPI,
                        API,
-                       ServerSide
+                       ServerSide,
+                       ClientSide
   build-depends:       base >= 4.7 && < 5,
                        gloss == 1.9.4.1,
                        gloss-rendering,
