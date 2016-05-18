@@ -18,6 +18,7 @@ data Action =
     | RotateRight
     | EnableShield
     | DisableShield
+    | StopRotating
     | Shoot deriving (Read, Show)
 
 instance WebSocketsData Action where
@@ -48,8 +49,8 @@ handleKeys (EventKey (SpecialKey KeyUp) Down _ _) = sendAction EnableAcceleratio
 handleKeys (EventKey (SpecialKey KeyUp) Up _ _) = sendAction DisableAcceleration
 handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) = sendAction RotateLeft
 handleKeys (EventKey (SpecialKey KeyRight) Down _ _) = sendAction RotateRight
-handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) = sendAction RotateRight
-handleKeys (EventKey (SpecialKey KeyRight) Up _ _) = sendAction RotateLeft
+handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) = sendAction StopRotating
+handleKeys (EventKey (SpecialKey KeyRight) Up _ _) = sendAction StopRotating
 handleKeys (EventKey (Char 's') Down _ _) = sendAction EnableShield
 handleKeys (EventKey (Char 's') Up _ _) = sendAction DisableShield
 handleKeys (EventKey (SpecialKey KeySpace) Down _ _) = sendAction Shoot

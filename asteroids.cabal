@@ -64,7 +64,9 @@ executable server
                        servant-docs,
                        servant,
                        wai,
-                       warp
+                       warp,
+                       stm,
+                       websockets
   default-language:    Haskell2010
 
 executable client

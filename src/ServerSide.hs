@@ -9,6 +9,7 @@ import API
 import Game
 import Types
 import Interface
+import Ship
 
 import Control.Monad (forever)
 import Control.Monad.Trans.Except
@@ -24,6 +25,11 @@ import Servant
 
 type ServantResponse a = ExceptT ServantErr IO a
 
+data ServerState = ServerState {
+    game :: GameState,
+    conns :: [WS.Connection]
+}
+
 
 serveGame :: Server GameAPI
 serveGame = newGame :<|> saveGame
@@ -34,23 +40,22 @@ newGame = return (InGame initUniverse)
 saveGame :: ServantResponse GameId
 saveGame = return 0
 
-serveService :: Server ServiceAPI
-serveService = openWebSocket
+serveService :: TVar ServerState -> Server ServiceAPI
+serveService ss = openWebSocket ss
 
-openWebSocket :: Application
-openWebSocket =
+openWebSocket :: TVar ServerState -> Application
+openWebSocket ss =
     (websocketsOr WS.defaultConnectionOptions wsApp backupApp)
     where
         wsApp :: WS.ServerApp
         wsApp pending_conn = do
             conn <- WS.acceptRequest pending_conn
             putStrLn "new client"
+            addClient ss conn
 
             forever $ do
                 action <- WS.receiveData conn
-                handleActions action
-                return ()
-                -- process user's action
+                editGameState action ss
 
 
         backupApp :: Application
@@ -58,25 +63,36 @@ openWebSocket =
             respond $ responseLBS status400 [] "Not a WebSocket request"
 
 
-handleActions :: Action -> IO ()
-handleActions action = print action
--- serverShipAccel :: GameState -> GameState
--- serverShipAccel GameOver = GameOver
--- serverShipAccel game@Game{..} = do
---     -- send this to server
---     -- game {
---     --     ship = ship {shipAccel = True}
---     -- }
---     game
+addClient :: TVar ServerState -> WS.Connection -> IO ()
+addClient ss conn = do
+    shared <- readTVarIO ss
+    let new_ss = shared {
+        conns = conn : (conns shared)
+    }
+    atomically $ writeTVar ss new_ss
 
--- serverShipNoAccel :: GameState -> GameState
--- serverShipNoAccel GameOver = GameOver
--- serverShipNoAccel game@Game{..} = do
---     -- send this to server
---     -- game {
---     --     ship = ship {shipAccel = False}
---     -- }
---     game
+
+editGameState :: Action -> TVar ServerState -> IO ()
+editGameState action ss = do
+    shared <- readTVarIO ss
+    let new_ss = shared {
+        game = handleActions action (game shared)
+    }
+    atomically $ writeTVar ss new_ss
+
+
+handleActions :: Action -> GameState -> GameState
+handleActions _ GameOver = GameOver
+handleActions EnableAcceleration (InGame u@Universe{..}) =
+    InGame u { ship = ship {shipAccel = True} }
+handleActions DisableAcceleration (InGame u@Universe{..}) =
+    InGame u { ship = ship {shipAccel = False} }
+handleActions _ u = u
+
+
+-- periodicUpdates TVar ServerState -> IO ()
+-- periodicUpdates ss = do
+
 
 -- serverShipRotateLeft :: GameState -> GameState
 -- serverShipRotateLeft GameOver = GameOver

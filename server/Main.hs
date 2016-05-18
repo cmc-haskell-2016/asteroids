@@ -3,22 +3,28 @@ module Main (main) where
 
 import API
 import ServerSide
+import Game
+import Universe
 
-import Servant
+import Control.Concurrent.STM
 import Network.Wai (Application)
 import Network.Wai.Handler.Warp (run)
+import Network.WebSockets
+import Servant
 import System.Environment
 
 
-server :: Server ServerAPI
-server = serveGame :<|> serveService
+server :: TVar ServerState -> Server ServerAPI
+server ss = serveGame :<|> (serveService ss)
 
-app :: Application
-app = serve (Proxy :: Proxy ServerAPI) server
+app :: TVar ServerState -> Application
+app ss = serve (Proxy :: Proxy ServerAPI) (server ss)
 
 main :: IO()
 main = do
     argv <- getArgs
     let http_port = (read . head) argv :: Int
 
-    run http_port app
+    shared <- newTVarIO $ ServerState (InGame initUniverse) []
+    forkIO $ periodicUpdates shared
+    run http_port (app shared)
