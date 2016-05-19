@@ -16,6 +16,7 @@ type GameId = Int
 --Networking types
 type Ip = String
 type Port = Int
+type ClientId = Int
 
 
 

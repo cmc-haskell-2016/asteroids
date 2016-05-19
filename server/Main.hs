@@ -6,6 +6,7 @@ import ServerSide
 import Game
 import Universe
 
+import Control.Concurrent (forkIO)
 import Control.Concurrent.STM
 import Network.Wai (Application)
 import Network.Wai.Handler.Warp (run)
@@ -15,7 +16,7 @@ import System.Environment
 
 
 server :: TVar ServerState -> Server ServerAPI
-server ss = serveGame :<|> (serveService ss)
+server ss = (serveGame ss) :<|> (serveService ss)
 
 app :: TVar ServerState -> Application
 app ss = serve (Proxy :: Proxy ServerAPI) (server ss)

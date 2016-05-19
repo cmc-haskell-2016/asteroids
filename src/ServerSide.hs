@@ -10,8 +10,9 @@ import Game
 import Types
 import Interface
 import Ship
+import Bullet
 
-import Control.Monad (forever)
+import Control.Monad (forever, forM_)
 import Control.Monad.Trans.Except
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -27,15 +28,31 @@ type ServantResponse a = ExceptT ServantErr IO a
 
 data ServerState = ServerState {
     game :: GameState,
-    conns :: [WS.Connection]
+    clients :: [Client]
 }
 
+data Client = Client {
+    conn :: WS.Connection,
+    client_id :: ClientId
+}
 
-serveGame :: Server GameAPI
-serveGame = newGame :<|> saveGame
+instance Show Client where
+    show c = show (client_id c)
 
-newGame :: ServantResponse GameState
-newGame = return (InGame initUniverse)
+instance Eq Client where
+    x == y = (client_id x) == (client_id y)
+    x /= y = not $ x == y
+
+
+serveGame :: TVar ServerState -> Server GameAPI
+serveGame ss = (newGame ss) :<|> saveGame
+
+newGame :: TVar ServerState -> ServantResponse GameState
+newGame ss = do
+    let new_game = (InGame initUniverse)
+    -- putStrLn "hello"
+    -- writeGameToShared ss new_game
+    return new_game
 
 saveGame :: ServantResponse GameId
 saveGame = return 0
@@ -50,91 +67,105 @@ openWebSocket ss =
         wsApp :: WS.ServerApp
         wsApp pending_conn = do
             conn <- WS.acceptRequest pending_conn
-            putStrLn "new client"
-            addClient ss conn
+            client <- addClient ss conn
+            -- foo <- readTVarIO ss
+            -- print (clients foo)
+            putStrLn $ "Client " ++ show (client_id client) ++ " has connected"
 
             forever $ do
                 action <- WS.receiveData conn
-                editGameState action ss
-
+                -- print action
+                checkCloseRequest action ss client
+                shared <- readTVarIO ss
+                let updated_game = editGameState action (game shared)
+                writeGameToShared ss updated_game
 
         backupApp :: Application
         backupApp _ respond = do
             respond $ responseLBS status400 [] "Not a WebSocket request"
 
 
-addClient :: TVar ServerState -> WS.Connection -> IO ()
-addClient ss conn = do
-    shared <- readTVarIO ss
-    let new_ss = shared {
-        conns = conn : (conns shared)
+checkCloseRequest :: Action -> TVar ServerState -> Client -> IO ()
+checkCloseRequest Finish ss client = atomically $ do
+    shared <- readTVar ss
+    let updated_clients = filter (\c -> client /= c) (clients shared)
+    writeTVar ss shared {
+        clients = updated_clients
     }
-    atomically $ writeTVar ss new_ss
+    return ()
+checkCloseRequest _ _ _ = return ()
 
 
-editGameState :: Action -> TVar ServerState -> IO ()
-editGameState action ss = do
-    shared <- readTVarIO ss
+addClient :: TVar ServerState -> WS.Connection -> IO Client
+addClient ss conn = atomically $ do
+    shared <- readTVar ss
+    let c = clients shared
+    let new_client = Client conn (newClientId c)
     let new_ss = shared {
-        game = handleActions action (game shared)
+        clients = (new_client : c)
     }
-    atomically $ writeTVar ss new_ss
+    writeTVar ss new_ss
+    return new_client
+
+
+newClientId :: [Client] -> ClientId
+newClientId clients = helper clients clients 0
+    where
+        helper :: [Client] -> [Client] -> ClientId -> ClientId
+        helper _ [] n = n
+        helper full_clients (x:xs) n
+            | (client_id x) == n = helper full_clients full_clients (n+1)
+            | otherwise = helper full_clients xs n
+
+
+
+editGameState :: Action -> GameState -> GameState
+editGameState action gs = handleActions action gs
 
 
 handleActions :: Action -> GameState -> GameState
-handleActions _ GameOver = GameOver
 handleActions EnableAcceleration (InGame u@Universe{..}) =
-    InGame u { ship = ship {shipAccel = True} }
+    InGame u {ship = ship {shipAccel = True}}
 handleActions DisableAcceleration (InGame u@Universe{..}) =
-    InGame u { ship = ship {shipAccel = False} }
+    InGame u {ship = ship {shipAccel = False}}
+handleActions RotateLeft (InGame u@Universe{..}) =
+    InGame u {ship = ship {rotation = (rotation ship) - 5}}
+handleActions RotateRight (InGame u@Universe{..}) =
+    InGame u {ship = ship {rotation = (rotation ship) + 5}}
+handleActions StopRotating (InGame u@Universe{..}) =
+    InGame u {ship = ship {rotation = 0}}
+handleActions EnableShield (InGame u@Universe{..}) =
+    InGame u  {ship = ship {shieldOn = True}}
+handleActions DisableShield (InGame u@Universe{..}) =
+    InGame u  {ship = ship {shieldOn = False}}
+handleActions Shoot (InGame u@Universe{..}) =
+    InGame u {bullets = (initBullet ship) : bullets}
 handleActions _ u = u
 
 
--- periodicUpdates TVar ServerState -> IO ()
--- periodicUpdates ss = do
+periodicUpdates :: TVar ServerState -> IO ()
+periodicUpdates ss = forever $ do
+    let fps = 60
+    threadDelay (1000000 `div` fps)
+    shared <- readTVarIO ss
+    let updated_game = updateGame (1 / fromIntegral fps) (game shared)
+    -- foldr (applySendToClient updated_game) (pure ()) (clients shared)
+    forM_ (clients shared) (applySendToClient updated_game)
+
+    -- putStrLn $ show $ length $ conns $ shared
+    let new_ss = shared {
+        game = updated_game
+    }
+    atomically $ writeTVar ss new_ss
+    where
+        applySendToClient :: GameState -> Client -> IO ()
+        applySendToClient g client = WS.sendBinaryData (conn client) g
 
 
--- serverShipRotateLeft :: GameState -> GameState
--- serverShipRotateLeft GameOver = GameOver
--- serverShipRotateLeft game@Game{..} =
---     -- send this to server
---     -- game {
---     --     ship = ship {rotation = (rotation ship) - 5}
---     -- }
---     game
-
--- serverShipRotateRight :: GameState -> GameState
--- serverShipRotateRight GameOver = GameOver
--- serverShipRotateRight game@Game{..} =
---     -- send this to server
---     -- game {
---     --     ship = ship {rotation = (rotation ship) + 5}
---     -- }
---     game
-
--- serverShieldOn :: GameState -> GameState
--- serverShieldOn GameOver = GameOver
--- serverShieldOn game@Game{..} =
---     -- send this to server
---     -- game {
---     --     ship = ship {shieldOn = True}
---     -- }
---     game
-
--- serverShieldOff :: GameState -> GameState
--- serverShieldOff GameOver = GameOver
--- serverShieldOff game@Game{..} =
---     -- send this to server
---     -- game {
---     --     ship = ship {shieldOn = False}
---     -- }
---     game
-
--- serverShoot :: GameState -> GameState
--- serverShoot GameOver = GameOver
--- serverShoot game@Game{..} =
---     -- send this to server
---     -- game {
---     --     bullets = (initBullet ship) : bullets
---     -- }
---     game
+writeGameToShared :: TVar ServerState -> GameState -> IO ()
+writeGameToShared ss new_game = atomically $ do
+    shared <- readTVar ss
+    let new_ss = shared {
+        game = new_game
+    }
+    writeTVar ss new_ss
