@@ -13,6 +13,7 @@ import Ship
 import Bullet
 
 import Control.Monad (forever, forM_)
+import Control.Monad.Trans (liftIO)
 import Control.Monad.Trans.Except
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -50,8 +51,7 @@ serveGame ss = (newGame ss) :<|> saveGame
 newGame :: TVar ServerState -> ServantResponse GameState
 newGame ss = do
     let new_game = (InGame initUniverse)
-    -- putStrLn "hello"
-    -- writeGameToShared ss new_game
+    liftIO $ writeGameToShared ss new_game
     return new_game
 
 saveGame :: ServantResponse GameId
