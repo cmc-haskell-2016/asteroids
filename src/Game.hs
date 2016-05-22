@@ -34,7 +34,7 @@ generateAstPosition ship (x:y:xs)
 generateAstPosition _ [] = (0, 0)
 generateAstPosition _ [_] = (0, 0)
 
-
+{-
 addAsteroid :: Universe -> Universe
 addAsteroid u@Universe{..} =
     if (step == 60)
@@ -53,6 +53,24 @@ addAsteroid u@Universe{..} =
         randInt = take 1 (randomRs (10::Float, 50::Float) genAst)
         randRad = head randInt
         a = Asteroid {astLoc = randLoc, astAng = 0, astRad = randRad, astAlive = True, astVel = randVel}
+-}
+addAsteroid :: Universe -> Universe
+addAsteroid u@Universe{..} =
+    if (step == 60)
+        then u {
+            step = 0,
+            asteroids = (a : asteroids),
+            randLoc = drop 2 randLoc,
+            randVel = drop 2 randVel,
+            randRad = drop 1 randRad
+        }
+        else u
+    where
+        newLoc = generateAstPosition ship randLoc
+        randSpeed = take 2 randVel
+        newVel = (head randSpeed, head (tail randSpeed))
+        newRad = head (take 1 randRad)
+        a = Asteroid {astLoc = newLoc, astAng = 0, astRad = newRad, astAlive = True, astVel = newVel}
 
 
 --check collisions for all objects

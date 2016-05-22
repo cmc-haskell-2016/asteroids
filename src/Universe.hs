@@ -10,13 +10,19 @@ data Universe = Universe {
     step :: Step,
     ship :: Ship,
     asteroids :: [Asteroid],
-    bullets :: [Bullet]
+    bullets :: [Bullet],
+    randLoc :: [Float],
+    randVel :: [Float],
+    randRad :: [Float]
 }
 
-initUniverse :: Universe
-initUniverse = Universe {
+initUniverse :: [Float] -> [Float] -> [Float] -> Universe
+initUniverse loc vel rad = Universe {
     step = 0,
     ship = initShip,
     asteroids = [],
-    bullets = []
+    bullets = [],
+    randLoc = loc,
+    randVel = vel,
+    randRad = rad
 }
