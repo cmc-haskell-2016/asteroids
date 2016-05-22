@@ -7,6 +7,7 @@ import Collisions
 import Ship
 import Asteroid
 import Bullet
+import UFO
 
 import Graphics.Gloss
 
@@ -54,7 +55,8 @@ instance GraphObject Ship where
         | otherwise = obj
 
     shouldKill s u@Universe{..} =
-        wallCollision sLoc 20
+        ((checkCollisionsWithMe sLoc 20 bullets) && (not (shieldOn ship)))
+        || wallCollision sLoc 20
         || ((checkCollisionsWithMe sLoc 20 asteroids) && (not (shieldOn ship)))
         where
             sLoc = shipLoc ship
@@ -96,6 +98,10 @@ instance GraphObject Bullet where
 
     shouldKill bull u@Universe{..} =
         checkCollisionsWithMe (bulLoc bull) 3 asteroids
+        || ((shieldOn ship) && (twoCirclesCollide (bulLoc bull) 3 sLoc sRad))
+        where
+            sLoc = shipLoc ship
+            sRad = shieldRad ship
 
     kill bull = bull {
         bulAlive = False
@@ -142,4 +148,46 @@ instance GraphObject Asteroid where
 
     kill ast = ast {
         astAlive = False
+    }
+
+
+instance GraphObject UFO where
+    draw ufo =
+        translate x y $
+        color green $
+        circleSolid 10
+        where
+            (x, y) = ufoLoc ufo
+
+    move sec ufo =
+        ufo {
+            ufoLoc = (x1, y1)
+        }
+        where
+            (x, y) = ufoLoc ufo
+            (vx, vy) = ufoVel ufo
+            x1 = x + vx * sec
+            y1 = y + vy * sec
+
+    checkCollisionsWithOthers u obj
+        | shouldKill obj u = kill obj
+        | otherwise = obj
+
+    checkCollisionsWithMe _ _ [] = False
+    checkCollisionsWithMe pos rad (a:as)
+        | (twoCirclesCollide pos rad (ufoLoc a) 10) = True
+        | otherwise = checkCollisionsWithMe pos rad as
+
+    shouldKill ufo u@Universe{..} =
+        (checkCollisionsWithMe uLoc uRad bullets)
+        || (wallCollision uLoc (uRad / 2))
+        || ((shieldOn ship) && (twoCirclesCollide uLoc uRad sLoc sRad))
+        where
+            uLoc = ufoLoc ufo
+            uRad = 10
+            sLoc = shipLoc ship
+            sRad = shieldRad ship
+
+    kill ufo = ufo {
+        ufoAlive = False
     }

@@ -1,7 +1,8 @@
 module Bullet
 (
     Bullet(..),
-    initBullet
+    initBullet,
+    bulletSpeed
 ) where
 
 import Types

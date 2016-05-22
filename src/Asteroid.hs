@@ -8,7 +8,6 @@ import Types
 
 data Asteroid = Asteroid {
     astLoc :: Position,
-    astAng :: Degree,
     astRad :: Radius,
     astVel :: Speed,
     astAlive :: Bool

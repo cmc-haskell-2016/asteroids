@@ -23,6 +23,7 @@ library
                        GraphObject,
                        Ship,
                        Asteroid,
+                       UFO,
                        Bullet,
                        Universe,
                        Collisions
