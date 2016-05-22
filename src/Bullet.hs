@@ -9,7 +9,7 @@ import Ship
 
 
 bulletSpeed :: Float
-bulletSpeed = 200
+bulletSpeed = 300
 
 
 data Bullet = Bullet {
