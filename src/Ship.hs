@@ -20,6 +20,9 @@ shipColor = light (light red)
 maxShieldPower:: Int
 maxShieldPower = 70
 
+maxShipSpeed::ShipSpeed
+maxShipSpeed = 100
+
 
 data Ship = Ship {
     shipSize :: Radius,
@@ -38,7 +41,10 @@ data Ship = Ship {
 accelerate :: Float -> Ship -> Ship
 accelerate sec s =
     if  shipAccel s
-        then newShip {shipVel = shipVel s  + 3 }
+        then 
+            if shipVel s  + 3 < maxShipSpeed
+                then newShip {shipVel = shipVel s  + 3 }
+                else newShip {shipVel = shipVel s}
         else newShip {shipVel = 0.98 * (shipVel s)
         }
     where
