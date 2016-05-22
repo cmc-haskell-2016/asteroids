@@ -27,5 +27,5 @@ main = do
     let http_port = (read . head) argv :: Int
 
     shared <- newTVarIO $ ServerState (InGame initUniverse) []
-    forkIO $ periodicUpdates shared
+    _ <- forkIO $ periodicUpdates shared
     run http_port (app shared)

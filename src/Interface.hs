@@ -47,9 +47,9 @@ sendAction action cs = do
 
 finish :: ClientState -> IO ClientState
 finish cs = do
-    sendAction Finish cs
+    _ <- sendAction Finish cs
     WS.sendClose (conn cs) ("Wanna quit" :: T.Text)
-    exitSuccess
+    _ <- exitSuccess
     return cs
 
 handleKeys :: Event -> ClientState -> IO ClientState

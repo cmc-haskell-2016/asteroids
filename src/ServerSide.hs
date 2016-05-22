@@ -68,8 +68,6 @@ openWebSocket ss =
         wsApp pending_conn = do
             conn <- WS.acceptRequest pending_conn
             client <- addClient ss conn
-            -- foo <- readTVarIO ss
-            -- print (clients foo)
             putStrLn $ "Client " ++ show (client_id client) ++ " has connected"
 
             forever $ do
@@ -149,10 +147,8 @@ periodicUpdates ss = forever $ do
     threadDelay (1000000 `div` fps)
     shared <- readTVarIO ss
     let updated_game = updateGame (1 / fromIntegral fps) (game shared)
-    -- foldr (applySendToClient updated_game) (pure ()) (clients shared)
     forM_ (clients shared) (applySendToClient updated_game)
 
-    -- putStrLn $ show $ length $ conns $ shared
     let new_ss = shared {
         game = updated_game
     }
