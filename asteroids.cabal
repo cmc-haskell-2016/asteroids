@@ -45,6 +45,7 @@ library
                        servant-client,
                        servant-docs,
                        servant,
+                       http-media,
                        aeson,
                        network,
                        stm,
@@ -87,7 +88,6 @@ executable client
                        stm,
                        http-types,
                        bytestring,
-                       http-media,
                        websockets,
                        mtl,
                        text

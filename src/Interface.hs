@@ -53,6 +53,7 @@ finish cs = do
     _ <- exitSuccess
     return cs
 
+
 handleKeys :: Event -> ClientState -> IO ClientState
 handleKeys (EventKey (SpecialKey KeyEsc) Down _ _) = finish
 handleKeys (EventKey (SpecialKey KeyUp) Down _ _) = sendAction EnableAcceleration
@@ -63,5 +64,6 @@ handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) = sendAction StopRotatingLeft
 handleKeys (EventKey (SpecialKey KeyRight) Up _ _) = sendAction StopRotatingRight
 handleKeys (EventKey (Char 's') Down _ _) = sendAction EnableShield
 handleKeys (EventKey (Char 's') Up _ _) = sendAction DisableShield
+handleKeys (EventKey (Char 'r') Up _ _) = restartGame
 handleKeys (EventKey (SpecialKey KeySpace) Down _ _) = sendAction Shoot
 handleKeys _ = return
