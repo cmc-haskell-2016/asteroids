@@ -17,7 +17,6 @@ import Control.Monad.Trans (liftIO)
 import Control.Monad.Trans.Except
 import Control.Concurrent
 import Control.Concurrent.STM
--- import Data.Text
 import Network.Wai.Handler.WebSockets
 import Network.HTTP.Types.Status
 import Network.Wai
@@ -83,7 +82,7 @@ openWebSocket ss =
                 atomically $ do
                     shared <- readTVar ss
                     writeTVar ss shared {
-                        game = editGameState action (game shared)
+                        game = handleActions action (game shared)
                     }
                 foo <- readTVarIO ss
                 print (game foo)
@@ -124,10 +123,6 @@ newClientId clients = helper clients clients 0
         helper full_clients (x:xs) n
             | (client_id x) == n = helper full_clients full_clients (n+1)
             | otherwise = helper full_clients xs n
-
-
-editGameState :: Action -> GameState -> GameState
-editGameState action gs = handleActions action gs
 
 
 handleActions :: Action -> GameState -> GameState
