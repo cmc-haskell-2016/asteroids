@@ -138,6 +138,8 @@ instance GraphObject Asteroid where
 
     shouldKill ast u@Universe{..} =
         (checkCollisionsWithMe aLoc aRad bullets)
+ --       || (checkCollisionsWithMe aLoc aRad asteroids)
+        || (checkCollisionsWithMe aLoc aRad ufos)
         || (wallCollision aLoc (aRad / 2))
         || ((shieldOn ship) && (twoCirclesCollide aLoc aRad sLoc sRad))
         where
@@ -181,6 +183,7 @@ instance GraphObject UFO where
 
     shouldKill ufo u@Universe{..} =
         (checkCollisionsWithMe uLoc uRad bullets)
+        || (checkCollisionsWithMe uLoc uRad asteroids)
         || (wallCollision uLoc (uRad / 2))
         || ((shieldOn ship) && (twoCirclesCollide uLoc uRad sLoc sRad))
         where

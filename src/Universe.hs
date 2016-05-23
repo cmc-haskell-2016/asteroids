@@ -17,7 +17,8 @@ data Universe = Universe {
     bullets :: [Bullet],
     randLoc :: [Float],
     randVel :: [Float],
-    randRad :: [Float]
+    randRad :: [Float],
+    level :: Int
 }
 
 initUniverseIO :: IO Universe
@@ -34,6 +35,7 @@ initUniverseIO = do
         bullets = [],
         randLoc = randLoc,
         randVel = randVel,
-        randRad = randRad
+        randRad = randRad,
+        level = 1
     }
 

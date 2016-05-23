@@ -27,38 +27,15 @@ data GameState =
     | GameOver
 
 
+
 generateObjPosition :: Ship -> [Float] -> Position
 generateObjPosition ship (x:y:xs)
-    | twoCirclesCollide (shipLoc ship) (shipSize ship) (x, y) 100 =
+    | twoCirclesCollide (shipLoc ship) (shipSize ship) (x, y) 150 =
         generateObjPosition ship xs
     | otherwise = (x, y)
 -- TODO: should be handling this case more appropriately
 generateObjPosition _ [] = (0, 0)
 generateObjPosition _ [_] = (0, 0)
-
-{-
-addAsteroid :: Universe -> Universe
-addAsteroid u@Universe{..} =
-    if (step == 60)
-        then u {
-            step = 0,
-            asteroids = (a : asteroids)
-        }
-        else u
-    where
-        genX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) asteroids)))
-        randLoc = generateAstPosition ship (randomRs ((-200)::Float, 200::Float) genX)
-        genY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) asteroids)))
-        randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genY)
-        randVel = (head randSpeed, head (tail randSpeed))
-        genAst = mkStdGen (length asteroids)
-        randInt = take 1 (randomRs (10::Float, 50::Float) genAst)
-        randRad = head randInt
-        a = Asteroid {astLoc = randLoc, astAng = 0, astRad = randRad, astAlive = True, astVel = randVel}
--}
-
-
-
 
 shotUFO :: [UFO] -> Position -> [Bullet]
 shotUFO [] _ = []
@@ -76,12 +53,12 @@ shotUFO (x:xs) ship = b : (shotUFO xs ship)
             bulVel = vel
         }
 shooting :: Universe -> Universe
-shooting u@Universe{..} = 
-    if ((mod step 100) == 40)
-    then u {
-        bullets = bullets ++ (shotUFO ufos (shipLoc ship))
-    }
-    else u
+shooting u@Universe{..}
+    | (level == 2) && ((mod step 100) == 40) = u {
+        bullets = bullets ++ (shotUFO ufos (shipLoc ship))}
+    | (level == 3) && ((mod step 50) == 40) = u {
+        bullets = bullets ++ (shotUFO ufos (shipLoc ship))}
+    | otherwise = u
 
 findShip :: Ship -> UFO -> UFO
 findShip s u = u {
@@ -96,13 +73,22 @@ findShip s u = u {
         vel = (xvel /norm * ufoSpeed, yvel /norm * ufoSpeed)
 
 
+changeLevel :: Universe -> Universe
+changeLevel u@Universe{..} =
+    if ((step == 2000) && (level < 3))
+        then u {
+            level = level + 1,
+            step = 0
+        }
+        else u 
+
 addUFO :: Universe -> Universe
 addUFO u@Universe{..} =
-    if (step == 300)
+    if ((mod step 200) == 1) 
         then u {
-            step = 0,
+ --           step = 0,
             ufos = (a : ufos),
-            randLoc = drop 2 randLoc,
+            randLoc = drop 4 randLoc,
             randVel = drop 2 randVel
         }
         else u
@@ -178,4 +164,4 @@ updateGame sec (InGame u@Universe{..})
         }
     where
         chain =
-            (addAsteroid . addUFO . shooting . delObjects . checkCollisions . updateObjects . moveAllObjects sec)
+            (changeLevel . addAsteroid . addUFO . shooting . delObjects . checkCollisions . updateObjects . moveAllObjects sec)

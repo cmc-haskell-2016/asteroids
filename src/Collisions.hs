@@ -24,3 +24,4 @@ twoCirclesCollide :: Position -> Radius -> Position -> Radius -> Bool
 twoCirclesCollide (x1, y1) rad1 (x2, y2) rad2 = dist <= rad1 + rad2
     where
         dist = sqrt ((x1-x2)^2 + (y1-y2)^2)
+

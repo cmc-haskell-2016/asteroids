@@ -57,4 +57,16 @@ handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (InGame u@Universe{..}) = r
     (InGame u {
         bullets = (initBullet ship) : bullets
     })
+handleKeys (EventKey (Char '1') Down _ _) (InGame u@Universe{..}) = return
+    (InGame u {
+        level = 1
+    })
+handleKeys (EventKey (Char '2') Down _ _) (InGame u@Universe{..}) = return
+    (InGame u {
+        level = 2
+    })
+handleKeys (EventKey (Char '3') Up _ _) (InGame u@Universe{..}) = return
+    (InGame u {
+        level = 3
+    })
 handleKeys _ gs = return gs
