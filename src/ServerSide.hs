@@ -21,7 +21,8 @@ import Ship
 import Bullet
 import Universe
 
-import Control.Monad (forever, forM_)
+import Control.Exception (try)
+import Control.Monad (forever, filterM)
 import Control.Monad.Trans (liftIO)
 import Control.Monad.Trans.Except (ExceptT)
 import Control.Concurrent (threadDelay)
@@ -161,10 +162,16 @@ periodicUpdates ss = forever $ do
         writeTVar ss shared {
             game = updateGame (1 / fromIntegral fps) (game shared)
         }
-
     shared <- readTVarIO ss
-    forM_ (clients shared) (sendGameToClient (game shared))
+    updated_clients <- filterM (sendGameToClient (game shared)) (clients shared)
+    atomically $ writeTVar ss shared {
+        clients = updated_clients
+    }
     where
-        sendGameToClient :: GameState -> Client -> IO ()
-        sendGameToClient g client = WS.sendBinaryData (conn client) g
+        sendGameToClient :: GameState -> Client -> IO Bool
+        sendGameToClient g client = do
+            res <- try (WS.sendBinaryData (conn client) g) :: IO (Either WS.ConnectionException ())
+            case res of
+                Left _ex -> return False
+                Right _ok -> return True
         fps = 60
