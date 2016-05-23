@@ -57,7 +57,8 @@ instance GraphObject Ship where
     shouldKill s u@Universe{..} =
         ((checkCollisionsWithMe sLoc 20 bullets) && (not (shieldOn ship)))
         || wallCollision sLoc 20
-        || ((checkCollisionsWithMe sLoc 20 asteroids) && (not (shieldOn ship)))
+        || ((checkCollisionsWithMe sLoc 5 asteroids) && (not (shieldOn ship)))
+        || ((checkCollisionsWithMe sLoc 5 ufos) && (not (shieldOn ship)))
         where
             sLoc = shipLoc ship
 

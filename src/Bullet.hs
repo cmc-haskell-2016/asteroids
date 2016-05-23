@@ -38,4 +38,4 @@ initBullet s =
         xvel = sin ((shipAng s) * pi / 180)
         norm = sqrt (xvel * xvel + yvel * yvel)
         velang = (xvel /norm * bulletSpeed, yvel /norm * bulletSpeed)
-        pos = (x + xvel /norm * 20, y + yvel /norm * 20)
+        pos = (x + xvel /norm * 40, y + yvel /norm * 40)
