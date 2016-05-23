@@ -26,14 +26,16 @@ data Bullet = Bullet {
 initBullet :: Ship -> Bullet
 initBullet s =
     Bullet {
-        bulLoc = shipLoc s,
+        bulLoc = pos,
         bulRad = 3,
         bulAng = shipAng s,
         bulAlive = True,
         bulVel = velang
     }
     where
+        (x, y) = shipLoc s
         yvel = cos ((shipAng s) * pi / 180)
         xvel = sin ((shipAng s) * pi / 180)
         norm = sqrt (xvel * xvel + yvel * yvel)
         velang = (xvel /norm * bulletSpeed, yvel /norm * bulletSpeed)
+        pos = (x + xvel /norm * 20, y + yvel /norm * 20)
