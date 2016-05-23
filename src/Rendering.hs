@@ -10,7 +10,7 @@ import Ship
 
 import Graphics.Gloss.Rendering
 import Graphics.Gloss
-
+import Data.Maybe
 
 drawShield :: Ship -> Picture
 drawShield s =
@@ -27,7 +27,7 @@ drawShield s =
 renderPic :: GameState -> Picture
 renderPic (InGame u@Universe{..}) =
     pictures
-        ((draw ship) : (map draw asteroids) ++ (map draw ufos) ++ (map draw bullets) ++ [drawShield ship])
+        ((draw ship) : (map draw (maybeToList bigBoss)) ++ (map draw asteroids) ++ (map draw ufos) ++ (map draw bullets) ++ [drawShield ship])
 renderPic GameOver =
     scale 10 10 (pictures[
         translate 0 0 $

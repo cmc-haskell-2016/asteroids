@@ -20,6 +20,7 @@ import Universe
 import Collisions
 
 import System.Random
+import Data.Maybe
 
 --add alternative states here, like 'pause', 'settings' and so on
 data GameState =
@@ -58,6 +59,7 @@ shooting u@Universe{..}
         bullets = bullets ++ (shotUFO ufos (shipLoc ship))}
     | (level == 3) && ((mod step 50) == 40) = u {
         bullets = bullets ++ (shotUFO ufos (shipLoc ship))}
+    | (level == 4) && ((mod step 100) == 99) = shootBoss bigBoss u
     | otherwise = u
 
 findShip :: Ship -> UFO -> UFO
@@ -75,16 +77,49 @@ findShip s u = u {
 
 changeLevel :: Universe -> Universe
 changeLevel u@Universe{..} =
-    if ((step == 2000) && (level < 3))
+    if ((step == 2000) && (level < 4))
         then u {
             level = level + 1,
             step = 0
         }
         else u 
 
+addBoss :: Universe -> Universe
+addBoss u@Universe{..} 
+    | (isNothing bigBoss) && (level == 4) = u {
+        bigBoss = Just Boss {
+            bossLoc = (100, 0),
+            bossVel = (bossSpeed * 10, bossSpeed),
+            bossStage = 100,
+            bossAlive = True
+        }
+    }
+    | otherwise = u 
+
+shootBoss :: Maybe Boss -> Universe -> Universe
+shootBoss Nothing u = u
+shootBoss (Just boss) u@Universe{..} = u {
+    bullets = bullets ++ 
+        zipWith (\ p v -> Bullet {bulLoc = p, bulVel = v, bulAlive = True, bulRad = 3}) poslist vellist
+    }
+    where
+        (x, y) = bossLoc boss
+        offset = bossRad + 30
+        poslist = [
+            (x + offset, y),
+            (x + offset, y + offset),
+            (x, y + offset),
+            (x - offset, y + offset),
+            (x - offset, y),
+            (x - offset, y - offset),
+            (x, y - offset),
+            (x + offset, y - offset)] 
+        vellist = map (\(xp, yp) -> ((xp - x) / offset * bulletSpeed, (yp - y) / offset * bulletSpeed)) poslist
+
+
 addUFO :: Universe -> Universe
 addUFO u@Universe{..} =
-    if ((mod step 200) == 1) 
+    if (((mod step 200) == 1) && (level /= 4)) 
         then u {
  --           step = 0,
             ufos = (a : ufos),
@@ -123,6 +158,7 @@ checkCollisions u@Universe{..} =
         ship = checkCollisionsWithOthers u ship,
         asteroids = map (checkCollisionsWithOthers u) asteroids,
         ufos = map (checkCollisionsWithOthers u) ufos,
+        bigBoss = collBoss u bigBoss,
         bullets = map (checkCollisionsWithOthers u) bullets
     }
 
@@ -131,10 +167,25 @@ moveAllObjects sec u@Universe{..} =
     u {
         ship = move sec ship,
         asteroids = map (move sec) asteroids,
+        bigBoss = moveBoss sec bigBoss,
 --        ufos = (map (findShip ship) ufos),
         ufos = map (move sec) (map (findShip ship) ufos),
         bullets = map (move sec) bullets
     }
+
+moveBoss :: Time -> Maybe Boss -> Maybe Boss
+moveBoss _ Nothing = Nothing
+moveBoss sec (Just boss) = Just (move sec boss) 
+
+collBoss :: Universe -> Maybe Boss -> Maybe Boss
+collBoss _ Nothing = Nothing
+collBoss u@Universe{..} (Just boss) = Just (checkCollisionsWithOthers u boss) 
+
+delBoss :: Maybe Boss -> Maybe Boss
+delBoss Nothing = Nothing
+delBoss (Just boss) 
+    | (bossAlive boss) = Just boss
+    | otherwise = Nothing
 
 
 
@@ -143,7 +194,8 @@ delObjects u@Universe{..} =
     u {
         asteroids = (filter (\ast -> astAlive ast) asteroids),
         ufos = (filter (\ufo -> ufoAlive ufo) ufos),
-        bullets = (filter (\bul -> bulAlive bul) bullets)
+        bullets = (filter (\bul -> bulAlive bul) bullets),
+        bigBoss = delBoss bigBoss
     }
 
 
@@ -152,6 +204,7 @@ updateObjects u@Universe{..} =
     u {
         ship = updateShip ship
     }
+
 
 
 updateGame :: Time -> GameState -> GameState
@@ -164,4 +217,4 @@ updateGame sec (InGame u@Universe{..})
         }
     where
         chain =
-            (changeLevel . addAsteroid . addUFO . shooting . delObjects . checkCollisions . updateObjects . moveAllObjects sec)
+            (changeLevel . addAsteroid . addUFO . addBoss . shooting . delObjects . updateObjects . checkCollisions . moveAllObjects sec)

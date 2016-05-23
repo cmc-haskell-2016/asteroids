@@ -8,6 +8,7 @@ import Bullet
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 import Graphics.Gloss.Interface.IO.Game
+import System.Exit (exitSuccess)
 
 
 offsetX :: Int
@@ -69,4 +70,9 @@ handleKeys (EventKey (Char '3') Up _ _) (InGame u@Universe{..}) = return
     (InGame u {
         level = 3
     })
+handleKeys (EventKey (Char '4') Up _ _) (InGame u@Universe{..}) = return
+    (InGame u {
+        level = 4
+    })
+handleKeys (EventKey (SpecialKey KeyEsc) Down _ _) _ = exitSuccess
 handleKeys _ gs = return gs

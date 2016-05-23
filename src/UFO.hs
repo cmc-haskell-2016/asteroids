@@ -2,8 +2,11 @@
 module UFO
 (
     UFO(..),
+    Boss(..),
     ufoRad,
-    ufoSpeed
+    bossRad,
+    ufoSpeed,
+    bossSpeed
 ) where
 
 import Types
@@ -22,5 +25,17 @@ data UFO = UFO {
     ufoAlive :: Bool
 } deriving (Show, Eq)
 
+bossRad :: Radius
+bossRad = 80
 
+bossSpeed :: Float
+bossSpeed = 10
+
+data Boss = Boss {
+    bossLoc :: Position,
+--    ufoNewVel :: Speed,
+    bossVel :: Speed,
+    bossStage :: Int,
+    bossAlive :: Bool
+} deriving (Show, Eq)
 

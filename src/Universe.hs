@@ -18,7 +18,8 @@ data Universe = Universe {
     randLoc :: [Float],
     randVel :: [Float],
     randRad :: [Float],
-    level :: Int
+    level :: Int,
+    bigBoss :: Maybe Boss
 }
 
 initUniverseIO :: IO Universe
@@ -36,6 +37,7 @@ initUniverseIO = do
         randLoc = randLoc,
         randVel = randVel,
         randRad = randRad,
-        level = 1
+        level = 1,
+        bigBoss = Nothing
     }
 
