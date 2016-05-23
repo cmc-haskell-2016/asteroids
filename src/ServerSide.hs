@@ -51,7 +51,13 @@ serveGame ss = (newGame ss) :<|> saveGame
 newGame :: TVar ServerState -> ServantResponse GameState
 newGame ss = do
     let new_game = (InGame initUniverse)
-    liftIO $ writeGameToShared ss new_game
+    liftIO $ atomically $ do
+        shared <- readTVar ss
+        let new_ss = shared {
+            game = new_game
+        }
+        writeTVar ss new_ss
+
     return new_game
 
 saveGame :: ServantResponse GameId
@@ -72,11 +78,15 @@ openWebSocket ss =
 
             forever $ do
                 action <- WS.receiveData conn
-                -- print action
+                print action
                 checkCloseRequest action ss client
-                shared <- readTVarIO ss
-                let updated_game = editGameState action (game shared)
-                writeGameToShared ss updated_game
+                atomically $ do
+                    shared <- readTVar ss
+                    writeTVar ss shared {
+                        game = editGameState action (game shared)
+                    }
+                foo <- readTVarIO ss
+                print (game foo)
 
         backupApp :: Application
         backupApp _ respond = do
@@ -116,7 +126,6 @@ newClientId clients = helper clients clients 0
             | otherwise = helper full_clients xs n
 
 
-
 editGameState :: Action -> GameState -> GameState
 editGameState action gs = handleActions action gs
 
@@ -130,8 +139,10 @@ handleActions RotateLeft (InGame u@Universe{..}) =
     InGame u {ship = ship {rotation = (rotation ship) - 5}}
 handleActions RotateRight (InGame u@Universe{..}) =
     InGame u {ship = ship {rotation = (rotation ship) + 5}}
-handleActions StopRotating (InGame u@Universe{..}) =
-    InGame u {ship = ship {rotation = 0}}
+handleActions StopRotatingLeft (InGame u@Universe{..}) =
+    InGame u {ship = ship {rotation = (rotation ship) + 5}}
+handleActions StopRotatingRight (InGame u@Universe{..}) =
+    InGame u {ship = ship {rotation = (rotation ship) - 5}}
 handleActions EnableShield (InGame u@Universe{..}) =
     InGame u  {ship = ship {shieldOn = True}}
 handleActions DisableShield (InGame u@Universe{..}) =
@@ -156,12 +167,3 @@ periodicUpdates ss = forever $ do
     where
         applySendToClient :: GameState -> Client -> IO ()
         applySendToClient g client = WS.sendBinaryData (conn client) g
-
-
-writeGameToShared :: TVar ServerState -> GameState -> IO ()
-writeGameToShared ss new_game = atomically $ do
-    shared <- readTVar ss
-    let new_ss = shared {
-        game = new_game
-    }
-    writeTVar ss new_ss

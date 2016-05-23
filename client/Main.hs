@@ -94,7 +94,7 @@ main = do
     response <- runExceptT (new c)
     new_game <- getServerResponse response
 
-    shared <- atomically $ newTVar new_game
+    shared <- newTVarIO new_game
 
     WS.runClient ip http_port "/service/open_socket" $ \conn -> do
         let new_state = (ClientState shared conn)
