@@ -73,7 +73,6 @@ handleUpdates state@ClientState{..} = do
     _ <- forkIO $ forever $ do
         game_state <- WS.receiveData conn
         atomically $ writeTVar game game_state
-        -- print game_state
     return ()
 
 
