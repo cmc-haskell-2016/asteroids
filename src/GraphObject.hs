@@ -95,7 +95,11 @@ instance GraphObject Bullet where
             bRad = bulRad b
 
     shouldKill bull u@Universe{..} =
-        checkCollisionsWithMe (bulLoc bull) 3 asteroids
+        wallCollision bLoc bRad
+        || checkCollisionsWithMe bLoc bRad asteroids
+        where
+            bLoc = bulLoc bull
+            bRad = bulRad bull
 
     kill bull = bull {
         bulAlive = False
