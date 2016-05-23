@@ -8,7 +8,7 @@ import Game
 import Types
 
 import Control.Monad (forever)
-import Control.Monad.Trans.Except
+import Control.Monad.Trans.Except (runExceptT, ExceptT)
 import Control.Concurrent (forkIO)
 import Control.Concurrent.STM
 import Data.ByteString.Lazy.Internal (ByteString)
@@ -16,7 +16,7 @@ import qualified Network.WebSockets as WS
 import Network.HTTP.Client hiding (Proxy)
 import Network.HTTP.Media.MediaType (MediaType)
 import qualified Network.HTTP.Types.Header as H
-import Network.HTTP.Types.Method
+import Network.HTTP.Types.Method (Method)
 import Servant
 import Servant.Client
 import System.Exit (die)
@@ -69,7 +69,7 @@ getUpdatedGameState _ cs = return cs
 
 
 handleUpdates :: ClientState -> IO ()
-handleUpdates state@ClientState{..} = do
+handleUpdates _state@ClientState{..} = do
     _ <- forkIO $ forever $ do
         game_state <- WS.receiveData conn
         atomically $ writeTVar game game_state

@@ -4,11 +4,7 @@
 module Game
 (
     GameState(..),
-    Universe(..),
-    updateGame,
-    width,
-    height,
-    initUniverse
+    updateGame
 ) where
 
 import Types
@@ -24,7 +20,6 @@ import Data.Aeson
 import GHC.Generics (Generic)
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import Network.WebSockets
-import System.Exit
 
 --add alternative states here, like 'pause', 'settings' and so on
 data GameState =

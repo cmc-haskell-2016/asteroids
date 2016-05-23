@@ -2,16 +2,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Interface where
 
-import Game
 import ClientSide
+import Collisions
 
-import qualified Data.Text as T
+-- import qualified Data.Text as T
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import qualified Network.WebSockets as WS
 import qualified Data.ByteString.Lazy.Char8 as BL8
-import System.Exit
-import Control.Concurrent
+import System.Exit (exitSuccess)
 
 
 data Action =

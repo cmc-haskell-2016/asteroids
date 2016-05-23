@@ -2,7 +2,15 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeOperators #-}
-module ServerSide where
+module ServerSide
+(
+    serveGame,
+    serveService,
+    periodicUpdates,
+    ServerState(..),
+    Client(..)
+)
+where
 
 
 import API
@@ -11,11 +19,12 @@ import Types
 import Interface
 import Ship
 import Bullet
+import Universe
 
 import Control.Monad (forever, forM_)
 import Control.Monad.Trans (liftIO)
-import Control.Monad.Trans.Except
-import Control.Concurrent
+import Control.Monad.Trans.Except (ExceptT)
+import Control.Concurrent (threadDelay)
 import Control.Concurrent.STM
 import Network.Wai.Handler.WebSockets
 import Network.HTTP.Types.Status

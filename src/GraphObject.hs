@@ -53,7 +53,13 @@ instance GraphObject Ship where
         | shouldKill obj u = kill obj
         | otherwise = obj
 
-    shouldKill s u@Universe{..} =
+    checkCollisionsWithMe _ _ [] = False
+    checkCollisionsWithMe pos rad (s:_) = twoCirclesCollide pos rad sLoc sRad
+        where
+            sLoc = shipLoc s
+            sRad = shipSize s
+
+    shouldKill _s _u@Universe{..} =
         wallCollision sLoc 20
         || ((checkCollisionsWithMe sLoc 20 asteroids) && (not (shieldOn ship)))
         where
@@ -94,7 +100,7 @@ instance GraphObject Bullet where
             bLoc = bulLoc b
             bRad = bulRad b
 
-    shouldKill bull u@Universe{..} =
+    shouldKill bull _u@Universe{..} =
         wallCollision bLoc bRad
         || checkCollisionsWithMe bLoc bRad asteroids
         where
@@ -134,7 +140,7 @@ instance GraphObject Asteroid where
         | (twoCirclesCollide pos rad (astLoc a) (astRad a)) = True
         | otherwise = checkCollisionsWithMe pos rad as
 
-    shouldKill ast u@Universe{..} =
+    shouldKill ast _u@Universe{..} =
         (checkCollisionsWithMe aLoc aRad bullets)
         || (wallCollision aLoc (aRad / 2))
         || ((shieldOn ship) && (twoCirclesCollide aLoc aRad sLoc sRad))

@@ -1,7 +1,5 @@
 module Main (main) where
 
-import Game
-import Types
 import Rendering
 import Interface
 import ClientSide
@@ -9,7 +7,6 @@ import ClientSide
 import Control.Monad.Trans.Except
 import Control.Concurrent (forkIO)
 import Control.Concurrent.STM
-import qualified Data.Text.IO as T
 import Graphics.Gloss.Interface.IO.Game
 import qualified Network.WebSockets as WS
 import System.Environment
@@ -34,8 +31,8 @@ main = do
 
     shared <- newTVarIO new_game
 
-    WS.runClient ip http_port "/service/open_socket" $ \conn -> do
-        let new_state = (ClientState shared conn c)
+    WS.runClient ip http_port "/service/open_socket" $ \socket -> do
+        let new_state = (ClientState shared socket c)
         putStrLn "Connection successful"
         _ <- forkIO (handleUpdates new_state)
         playIO window background fps new_state renderPicIO handleKeys getUpdatedGameState

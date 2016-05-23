@@ -7,6 +7,7 @@ module Rendering
 import Game
 import GraphObject
 import Ship
+import Universe
 import ClientSide
 
 import Graphics.Gloss.Rendering
@@ -27,7 +28,7 @@ drawShield s =
 
 
 renderPic :: GameState -> Picture
-renderPic (InGame u@Universe{..}) =
+renderPic (InGame _u@Universe{..}) =
     pictures
         ((draw ship) : (map draw asteroids) ++ (map draw bullets) ++ [drawShield ship])
 renderPic GameOver =

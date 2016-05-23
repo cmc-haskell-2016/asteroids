@@ -7,12 +7,11 @@ import Game
 import Universe
 
 import Control.Concurrent (forkIO)
-import Control.Concurrent.STM
+import Control.Concurrent.STM (newTVarIO, TVar)
 import Network.Wai (Application)
 import Network.Wai.Handler.Warp (run)
-import Network.WebSockets
 import Servant
-import System.Environment
+import System.Environment (getArgs)
 
 
 server :: TVar ServerState -> Server ServerAPI
