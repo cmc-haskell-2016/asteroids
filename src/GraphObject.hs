@@ -155,17 +155,18 @@ instance GraphObject UFO where
     draw ufo =
         translate x y $
         color green $
-        circleSolid 10
+        circleSolid ufoRad
         where
             (x, y) = ufoLoc ufo
 
     move sec ufo =
         ufo {
-            ufoLoc = (x1, y1)
+            ufoLoc = (x1, y1),
+            ufoVel = ufoNewVel ufo
         }
         where
             (x, y) = ufoLoc ufo
-            (vx, vy) = ufoVel ufo
+            (vx, vy) = ufoNewVel ufo
             x1 = x + vx * sec
             y1 = y + vy * sec
 
@@ -184,7 +185,7 @@ instance GraphObject UFO where
         || ((shieldOn ship) && (twoCirclesCollide uLoc uRad sLoc sRad))
         where
             uLoc = ufoLoc ufo
-            uRad = 10
+            uRad = ufoRad
             sLoc = shipLoc ship
             sRad = shieldRad ship
 

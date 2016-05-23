@@ -6,6 +6,8 @@ import Asteroid
 import UFO
 import Types
 
+import System.Random
+
 
 data Universe = Universe {
     step :: Step,
@@ -18,14 +20,20 @@ data Universe = Universe {
     randRad :: [Float]
 }
 
-initUniverse :: [Float] -> [Float] -> [Float] -> Universe
-initUniverse loc vel rad = Universe {
-    step = 0,
-    ship = initShip,
-    asteroids = [],
-    ufos = [],
-    bullets = [],
-    randLoc = loc,
-    randVel = vel,
-    randRad = rad
-}
+initUniverseIO :: IO Universe
+initUniverseIO = do
+    gen <- getStdGen
+    randLoc <- return (randomRs ((-200)::Float, 200::Float) gen)
+    randVel <- return (randomRs ((-70)::Float, 70::Float) gen)
+    randRad <- return (randomRs (10::Float, 50::Float) gen) 
+    return Universe {
+        step = 0,
+        ship = initShip,
+        asteroids = [],
+        ufos = [],
+        bullets = [],
+        randLoc = randLoc,
+        randVel = randVel,
+        randRad = randRad
+    }
+

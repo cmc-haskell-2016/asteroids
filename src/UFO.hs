@@ -1,13 +1,18 @@
 {-# LANGUAGE RecordWildCards #-}
 module UFO
 (
-    UFO(..)
+    UFO(..),
+    ufoRad,
+    ufoSpeed
 ) where
 
 import Types
 
 ufoRad :: Radius
 ufoRad = 10
+
+ufoSpeed :: Float
+ufoSpeed = 40
 
 data UFO = UFO {
     ufoLoc :: Position,
@@ -16,4 +21,6 @@ data UFO = UFO {
     ufoStage :: Int,
     ufoAlive :: Bool
 } deriving (Show, Eq)
+
+
 

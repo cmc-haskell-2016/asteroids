@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Rendering
 (
-    renderPic
+    renderPicIO
 ) where
 
 import Game
@@ -42,3 +42,7 @@ renderPic GameOver =
         scale 0.05 0.05 $
         color red $
         text "Game Over"])
+
+renderPicIO :: GameState -> IO Picture
+renderPicIO gs = do
+    return $ renderPic gs

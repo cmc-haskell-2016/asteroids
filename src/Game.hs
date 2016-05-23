@@ -6,7 +6,8 @@ module Game
     updateGame,
     width,
     height,
-    initUniverse
+    initUniverseIO,
+    findShip
 ) where
 
 import Types
@@ -28,7 +29,7 @@ data GameState =
 
 generateObjPosition :: Ship -> [Float] -> Position
 generateObjPosition ship (x:y:xs)
-    | twoCirclesCollide (shipLoc ship) (shipSize ship) (x, y) 50 =
+    | twoCirclesCollide (shipLoc ship) (shipSize ship) (x, y) 100 =
         generateObjPosition ship xs
     | otherwise = (x, y)
 -- TODO: should be handling this case more appropriately
@@ -76,15 +77,28 @@ shotUFO (x:xs) ship = b : (shotUFO xs ship)
         }
 shooting :: Universe -> Universe
 shooting u@Universe{..} = 
-    if ((mod step 50) == 1)
+    if ((mod step 100) == 40)
     then u {
         bullets = bullets ++ (shotUFO ufos (shipLoc ship))
     }
     else u
 
+findShip :: Ship -> UFO -> UFO
+findShip s u = u {
+    ufoNewVel = vel
+    }
+    where
+        (xs, ys) = shipLoc s
+        (xu, yu) = ufoLoc u
+        xvel = xs - xu
+        yvel = ys - yu
+        norm = sqrt (xvel * xvel + yvel * yvel)
+        vel = (xvel /norm * ufoSpeed, yvel /norm * ufoSpeed)
+
+
 addUFO :: Universe -> Universe
 addUFO u@Universe{..} =
-    if (step == 120)
+    if (step == 300)
         then u {
             step = 0,
             ufos = (a : ufos),
@@ -96,11 +110,11 @@ addUFO u@Universe{..} =
         newLoc = generateObjPosition ship randLoc
         randSpeed = take 2 randVel
         newVel = (head randSpeed, head (tail randSpeed))
-        a = UFO {ufoLoc = newLoc, ufoAlive = True, ufoVel = newVel}
+        a = UFO {ufoLoc = newLoc, ufoAlive = True, ufoVel = newVel, ufoNewVel = newVel}
 
 addAsteroid :: Universe -> Universe
 addAsteroid u@Universe{..} =
-    if (step == 60)
+    if ((mod step 50) == 1) 
         then u {
             asteroids = (a : asteroids),
             randLoc = drop 2 randLoc,
@@ -126,15 +140,16 @@ checkCollisions u@Universe{..} =
         bullets = map (checkCollisionsWithOthers u) bullets
     }
 
-
 moveAllObjects :: Time -> Universe -> Universe
 moveAllObjects sec u@Universe{..} =
     u {
         ship = move sec ship,
         asteroids = map (move sec) asteroids,
-        ufos = map (move sec) ufos,
+--        ufos = (map (findShip ship) ufos),
+        ufos = map (move sec) (map (findShip ship) ufos),
         bullets = map (move sec) bullets
     }
+
 
 
 delObjects :: Universe -> Universe
