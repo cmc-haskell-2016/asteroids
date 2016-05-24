@@ -28,21 +28,46 @@ data GameState =
 
 
 
+type AI = UFO -> Universe -> Position
+
+
+randomAI :: AI
+randomAI ufo Universe{..} = (head newpos, head (tail newpos))
+    where 
+        newpos = drop 8 (take 10 (randPos ufo))
+
+simpleAI :: AI
+simpleAI  _ Universe{..} = shipLoc ship
+
+predictAI :: AI
+predictAI ufo Universe{..} = newpos
+    where
+        (xs, ys) = shipLoc ship
+--        (xv1, yv1) = shipAng ship
+        v = shipVel ship
+        xv = v* (sin ((shipAng ship) * pi / 180))
+        yv = v* (cos ((shipAng ship) * pi/180))
+--        (xv, yv) = (xv1 * (shipVel ship), yv1 * (shipVel ship))
+--        (x, y) = ufoLoc ufo
+        newpos = (xs + xv, ys + yv)
+
 generateObjPosition :: Ship -> [Float] -> Position
 generateObjPosition ship (x:y:xs)
     | twoCirclesCollide (shipLoc ship) (shipSize ship) (x, y) 150 =
         generateObjPosition ship xs
     | otherwise = (x, y)
--- TODO: should be handling this case more appropriately
 generateObjPosition _ [] = (0, 0)
 generateObjPosition _ [_] = (0, 0)
 
-shotUFO :: [UFO] -> Position -> [Bullet]
+shotUFO :: [UFO] -> Universe -> [Bullet]
 shotUFO [] _ = []
-shotUFO (x:xs) ship = b : (shotUFO xs ship)
+shotUFO (x:xs) u@Universe{..} = b : (shotUFO xs u)
     where
-        xvel = (fst ship) - (fst (ufoLoc x))
-        yvel = (snd ship) - (snd (ufoLoc x))
+        (xc, yc) = if (ufoLevel x == 1) 
+                then randomAI x u
+                else predictAI x u
+        xvel = xc - (fst (ufoLoc x))
+        yvel = yc - (snd (ufoLoc x))
         norm = sqrt (xvel * xvel + yvel * yvel)
         vel = (xvel /norm * bulletSpeed, yvel /norm * bulletSpeed)
         loc = ((fst (ufoLoc x)) + xvel / norm * 10, (snd (ufoLoc x)) + yvel / norm * 10)
@@ -54,16 +79,16 @@ shotUFO (x:xs) ship = b : (shotUFO xs ship)
         }
 shooting :: Universe -> Universe
 shooting u@Universe{..}
-    | (level == 2) && ((mod step 100) == 40) = u {
-        bullets = bullets ++ (shotUFO ufos (shipLoc ship))}
+    | (level <= 2) && ((mod step 100) == 40) = u {
+        bullets = bullets ++ (shotUFO ufos u)}
     | (level == 3) && ((mod step 50) == 40) = u {
-        bullets = bullets ++ (shotUFO ufos (shipLoc ship))}
+        bullets = bullets ++ (shotUFO ufos u)}
     | (level == 4) && ((mod step 100) == 99) = shootBoss bigBoss u
     | otherwise = u
 
 findShip :: Ship -> UFO -> UFO
 findShip s u = u {
-    ufoNewVel = vel
+    ufoVel = vel
     }
     where
         (xs, ys) = shipLoc s
@@ -139,7 +164,14 @@ addUFO u@Universe{..} =
         newLoc = generateObjPosition ship randLoc
         randSpeed = take 2 randVel
         newVel = (head randSpeed, head (tail randSpeed))
-        a = UFO {ufoLoc = newLoc, ufoAlive = True, ufoVel = newVel, ufoNewVel = newVel}
+        a = UFO {
+            ufoLoc = newLoc, 
+            ufoAlive = True, 
+            ufoVel = newVel,
+            ufoNewVel = newVel, 
+            ufoLevel = level,
+            randPos = drop 50 randLoc
+        }
 
 addAsteroid :: Universe -> Universe
 addAsteroid u@Universe{..} =

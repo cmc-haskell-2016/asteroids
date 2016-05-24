@@ -19,9 +19,11 @@ ufoSpeed = 40
 
 data UFO = UFO {
     ufoLoc :: Position,
-    ufoNewVel :: Speed,
+    ufoNewVel :: Speed,  -- 
     ufoVel :: Speed,
-    ufoAlive :: Bool
+    ufoAlive :: Bool,
+    ufoLevel :: Int,
+    randPos :: [Float]
 } deriving (Show, Eq)
 
 bossRad :: Radius
@@ -37,4 +39,9 @@ data Boss = Boss {
     bossStage :: Int,
     bossAlive :: Bool
 } deriving (Show, Eq)
+
+
+
+--predictiveAI :: AI
+--predictiveAI Universe{..} = 
 

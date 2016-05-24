@@ -167,12 +167,11 @@ instance GraphObject UFO where
 
     move sec ufo =
         ufo {
-            ufoLoc = (x1, y1),
-            ufoVel = ufoNewVel ufo
+            ufoLoc = (x1, y1)
         }
         where
             (x, y) = ufoLoc ufo
-            (vx, vy) = ufoNewVel ufo
+            (vx, vy) = ufoVel ufo
             x1 = x + vx * sec
             y1 = y + vy * sec
 
