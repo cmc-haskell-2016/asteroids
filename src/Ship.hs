@@ -6,11 +6,12 @@ module Ship
     Ship(..),
     accelerate,
     initShip,
-    shipColor,
+    shipColors,
     updateShip
 ) where
 
 import Types
+import Collisions
 
 import Graphics.Gloss.Rendering
 import Graphics.Gloss
@@ -20,8 +21,11 @@ import Network.WebSockets
 import qualified Data.ByteString.Lazy.Char8 as BL8
 
 
-shipColor :: Color
-shipColor = light (light red)
+shipColors :: Int -> Color
+shipColors n
+    | n == 1 = light $ light red
+    | n == 2 = light $ light yellow
+    | otherwise = light $ light green
 
 maxShieldPower:: Int
 maxShieldPower = 70
@@ -38,6 +42,7 @@ data Ship = Ship {
     rotation :: Degree,
     shipAlive :: Bool,
     shipAccel :: Bool,
+    shipColor :: Int,
     shieldOn :: Bool,
     shieldAcc:: Unit,
     shieldRad :: Float
@@ -83,15 +88,16 @@ updateShip :: Ship -> Ship
 updateShip s = updateShield s
 
 
-initShip :: Ship
-initShip = Ship {
+initShip :: Int -> Ship
+initShip n = Ship {
     shipSize = 20,
-    shipLoc = (0, 0),
+    shipLoc = (-(fromIntegral width) / 2 + (fromIntegral (width * n)) / 3, 0),
     shipAng = 0,
     rotation = 0,
     shipVel = 0,
     shipAlive = True,
     shipAccel = False,
+    shipColor = n,
     shieldOn = False,
     shieldAcc = maxShieldPower,
     shieldRad = 40

@@ -15,7 +15,7 @@ import Network.WebSockets
 
 data Universe = Universe {
     step :: Step,
-    ship :: Ship,
+    ships :: [Ship],
     asteroids :: [Asteroid],
     bullets :: [Bullet]
 } deriving (Show, Read, Generic)
@@ -28,10 +28,14 @@ instance WebSocketsData Universe where
     toLazyByteString   = BL8.pack . show
 
 
-initUniverse :: Universe
-initUniverse = Universe {
+initUniverse :: Int -> Universe
+initUniverse k = Universe {
     step = 0,
-    ship = initShip,
+    ships = loop k,
     asteroids = [],
     bullets = []
 }
+    where
+        loop n
+            | n == 0 = []
+            | otherwise = (initShip n) : (loop (n - 1))

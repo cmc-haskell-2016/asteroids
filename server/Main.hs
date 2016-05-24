@@ -4,7 +4,6 @@ module Main (main) where
 import API
 import ServerSide
 import Game
-import Universe
 
 import Control.Concurrent (forkIO)
 import Control.Concurrent.STM (newTVarIO, TVar)
@@ -24,7 +23,16 @@ main :: IO()
 main = do
     argv <- getArgs
     let http_port = (read . head) argv :: Int
+    let game_mode = (head . tail) argv
+    mode <- modeHandler game_mode
 
-    shared <- newTVarIO $ ServerState (InGame initUniverse) []
+    shared <- newTVarIO $ ServerState mode []
     _ <- forkIO $ periodicUpdates shared
     run http_port (app shared)
+    where
+        modeHandler :: String -> IO GameMode
+        modeHandler "single" = return $ Single $ Waiting 1
+        modeHandler "cooperative" = return $ Cooperative $ Waiting 2
+        modeHandler _ = do
+            putStrLn "Unknown mode, using single game by default"
+            return $ Single $ Waiting 1

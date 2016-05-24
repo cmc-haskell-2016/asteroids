@@ -37,7 +37,7 @@ import Servant
 type ServantResponse a = ExceptT ServantErr IO a
 
 data ServerState = ServerState {
-    game :: GameState,
+    game :: GameMode,
     clients :: [Client]
 }
 
@@ -59,15 +59,36 @@ serveGame ss = (newGame ss) :<|> saveGame
 
 newGame :: TVar ServerState -> ServantResponse GameState
 newGame ss = do
-    let new_game = (InGame initUniverse)
     liftIO $ atomically $ do
         shared <- readTVar ss
         let new_ss = shared {
-            game = new_game
+            game = modeHandler (length (clients shared)) (game shared)
         }
         writeTVar ss new_ss
+    shared <- liftIO $ readTVarIO ss
+    return $ getGameState $ game $ shared
+    where
+        modeHandler :: Int -> GameMode -> GameMode
+        modeHandler n (Single gs) = modeHandlerSingle n gs
+        modeHandler n (Cooperative gs) = modeHandlerCooperative n gs
 
-    return new_game
+        modeHandlerSingle :: Int -> GameState -> GameMode
+        modeHandlerSingle 1 GameOver = Single $ InGame [initUniverse 1]
+        modeHandlerSingle _ GameOver = Single $ GameOver
+        modeHandlerSingle 1 (InGame _) = Single $ InGame [initUniverse 1]
+        modeHandlerSingle _ (InGame _) = Single $ GameOver
+        modeHandlerSingle 1 (Waiting _) = Single $ InGame [initUniverse 1]
+        modeHandlerSingle _ (Waiting _) = Single $ GameOver
+
+        modeHandlerCooperative :: Int -> GameState -> GameMode
+        modeHandlerCooperative n (InGame _) = defaultCooperative n
+        modeHandlerCooperative n (Waiting _) = defaultCooperative n
+        modeHandlerCooperative n GameOver = defaultCooperative n
+
+        defaultCooperative :: Int -> GameMode
+        defaultCooperative n
+            | n == 2 = Cooperative $ InGame [initUniverse 2]
+            | otherwise = Cooperative $ Waiting (2 - n)
 
 saveGame :: ServantResponse GameId
 saveGame = return 0
@@ -88,10 +109,11 @@ openWebSocket ss =
             forever $ do
                 action <- WS.receiveData conn
                 checkCloseRequest action ss client
+                --checkPauseRequest action ss
                 atomically $ do
                     shared <- readTVar ss
                     writeTVar ss shared {
-                        game = handleActions action (game shared)
+                        game = handleActions (client_id client) action (game shared)
                     }
 
         backupApp :: Application
@@ -132,26 +154,56 @@ newClientId clients = helper clients clients 0
             | otherwise = helper full_clients xs n
 
 
-handleActions :: Action -> GameState -> GameState
-handleActions EnableAcceleration (InGame u@Universe{..}) =
-    InGame u {ship = ship {shipAccel = True}}
-handleActions DisableAcceleration (InGame u@Universe{..}) =
-    InGame u {ship = ship {shipAccel = False}}
-handleActions RotateLeft (InGame u@Universe{..}) =
-    InGame u {ship = ship {rotation = (rotation ship) - 5}}
-handleActions RotateRight (InGame u@Universe{..}) =
-    InGame u {ship = ship {rotation = (rotation ship) + 5}}
-handleActions StopRotatingLeft (InGame u@Universe{..}) =
-    InGame u {ship = ship {rotation = (rotation ship) + 5}}
-handleActions StopRotatingRight (InGame u@Universe{..}) =
-    InGame u {ship = ship {rotation = (rotation ship) - 5}}
-handleActions EnableShield (InGame u@Universe{..}) =
-    InGame u  {ship = ship {shieldOn = True}}
-handleActions DisableShield (InGame u@Universe{..}) =
-    InGame u  {ship = ship {shieldOn = False}}
-handleActions Shoot (InGame u@Universe{..}) =
-    InGame u {bullets = (initBullet ship) : bullets}
-handleActions _ u = u
+handleActions :: Int -> Action -> GameMode -> GameMode
+handleActions _ action (Single gs) =
+    Single $ handleActionsSingle action gs
+handleActions client_id action (Cooperative gs) =
+    Cooperative $ handleActionsCooperative client_id action gs
+
+
+handleActionsSingle :: Action -> GameState -> GameState
+handleActionsSingle EnableAcceleration (InGame (u@Universe{..}:_)) =
+    InGame [u {ships =  map (\s -> s {shipAccel = True}) ships}]
+handleActionsSingle DisableAcceleration (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> s {shipAccel = False}) ships}]
+handleActionsSingle RotateLeft (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> s {rotation = (rotation $ s) - 5}) ships}]
+handleActionsSingle RotateRight (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> s {rotation = (rotation $ s) + 5}) ships}]
+handleActionsSingle StopRotatingLeft (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> s {rotation = (rotation $ s) + 5}) ships}]
+handleActionsSingle StopRotatingRight (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> s {rotation = (rotation $ s) - 5}) ships}]
+handleActionsSingle EnableShield (InGame (u@Universe{..}:_)) =
+    InGame [u  {ships = map (\s -> s {shieldOn = True}) ships}]
+handleActionsSingle DisableShield (InGame (u@Universe{..}:_)) =
+    InGame [u  {ships = map (\s -> s {shieldOn = False}) ships}]
+handleActionsSingle Shoot (InGame (u@Universe{..}:_)) =
+    InGame [u {bullets = (initBullet $ head ships) : bullets}]
+handleActionsSingle _ u = u
+
+
+--todo
+handleActionsCooperative :: Int -> Action -> GameState -> GameState
+handleActionsCooperative n EnableAcceleration (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> if s == ships!!n then s {shipAccel = True} else s) ships}]
+handleActionsCooperative n DisableAcceleration (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> if s == ships!!n then s {shipAccel = False} else s) ships}]
+handleActionsCooperative n RotateLeft (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> if s == ships!!n then s {rotation = (rotation $ s) - 5} else s) ships}]
+handleActionsCooperative n RotateRight (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> if s == ships!!n then s {rotation = (rotation $ s) + 5} else s) ships}]
+handleActionsCooperative n StopRotatingLeft (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> if s == ships!!n then s {rotation = (rotation $ s) + 5} else s) ships}]
+handleActionsCooperative n StopRotatingRight (InGame (u@Universe{..}:_)) =
+    InGame [u {ships = map (\s -> if s == ships!!n then s {rotation = (rotation $ s) - 5} else s) ships}]
+handleActionsCooperative n EnableShield (InGame (u@Universe{..}:_)) =
+    InGame [u  {ships = map (\s -> if s == ships!!n then s {shieldOn = True} else s) ships}]
+handleActionsCooperative n DisableShield (InGame (u@Universe{..}:_)) =
+    InGame [u  {ships = map (\s -> if s == ships!!n then s {shieldOn = False} else s) ships}]
+handleActionsCooperative n Shoot (InGame (u@Universe{..}:_)) =
+    InGame [u {bullets = (initBullet $ ships !! n) : bullets}]
+handleActionsCooperative _ _ u = u
 
 
 periodicUpdates :: TVar ServerState -> IO ()
@@ -163,15 +215,18 @@ periodicUpdates ss = forever $ do
             game = updateGame (1 / fromIntegral fps) (game shared)
         }
     shared <- readTVarIO ss
-    updated_clients <- filterM (sendGameToClient (game shared)) (clients shared)
+    updated_clients <- filterM (sendGameToClient (gs shared)) (clients shared)
     atomically $ writeTVar ss shared {
         clients = updated_clients
     }
     where
+        gs = (getGameState . game)
         sendGameToClient :: GameState -> Client -> IO Bool
         sendGameToClient g client = do
-            res <- try (WS.sendBinaryData (conn client) g) :: IO (Either WS.ConnectionException ())
+            res <- try send :: IO (Either WS.ConnectionException ())
             case res of
                 Left _ex -> return False
                 Right _ok -> return True
+            where
+                send = (WS.sendBinaryData (conn client) g)
         fps = 60

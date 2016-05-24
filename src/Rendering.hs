@@ -19,7 +19,7 @@ drawShield :: Ship -> Picture
 drawShield s =
     if shieldOn s then
         translate x y $
-        color shipColor $
+        color (shipColors (shipColor s)) $
         circle (shieldRad s)
     else
         blank
@@ -28,23 +28,31 @@ drawShield s =
 
 
 renderPic :: GameState -> Picture
-renderPic (InGame _u@Universe{..}) =
+renderPic (Waiting n) =
+    scale 5 5 $
+    pictures[
+        translate 0 0 $
+        scale 0.05 0.05 $
+        color red $
+        text ("Waiting players: " ++ (show n))]
+renderPic (InGame (_u@Universe{..}:_)) =
     pictures
-        ((draw ship) : (map draw asteroids) ++ (map draw bullets) ++ [drawShield ship])
+        ((map draw ships) ++ (map draw asteroids) ++ (map draw bullets) ++ (map drawShield ships))
 renderPic GameOver =
     scale 10 10 (pictures[
         translate 0 0 $
-        color shipColor $
+        color (shipColors 1) $
         rotate 0 $
         polygon [(10, -5), (0, 0), (0, 20)],
         translate 0 0 $
-        color shipColor $
+        color (shipColors 1) $
         rotate 0 $
         polygon [(-10, -5), (0, 0), (0, 20)],
         translate (-18) (-20) $
         scale 0.05 0.05 $
         color red $
         text "Game Over"])
+renderPic _ = pictures [text "foo"]
 
 
 renderPicIO :: ClientState -> IO Picture

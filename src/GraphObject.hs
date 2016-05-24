@@ -26,11 +26,11 @@ instance GraphObject Ship where
     draw s =
         pictures[
             translate x y $
-            color shipColor $
+            color (shipColors (shipColor s)) $
             rotate phi $
             polygon [(10, -5), (0, 0), (0, (shipSize s))],
             translate x y $
-            color shipColor $
+            color (shipColors (shipColor s)) $
             rotate phi $
             polygon [(-10, -5), (0, 0), (0, (shipSize s))]]
         where
@@ -59,11 +59,11 @@ instance GraphObject Ship where
             sLoc = shipLoc s
             sRad = shipSize s
 
-    shouldKill _s _u@Universe{..} =
+    shouldKill s _u@Universe{..} =
         wallCollision sLoc 20
-        || ((checkCollisionsWithMe sLoc 20 asteroids) && (not (shieldOn ship)))
+        || ((checkCollisionsWithMe sLoc 20 asteroids) && (not (shieldOn s)))
         where
-            sLoc = shipLoc ship
+            sLoc = shipLoc s
 
     kill ship = ship {
         shipAlive = False
@@ -73,7 +73,7 @@ instance GraphObject Ship where
 instance GraphObject Bullet where
     draw bull =
             translate x y $
-            color red $
+            color (shipColors (bulColor bull)) $
             circleSolid 3
         where
             (x, y) = bulLoc bull
@@ -141,14 +141,18 @@ instance GraphObject Asteroid where
         | otherwise = checkCollisionsWithMe pos rad as
 
     shouldKill ast _u@Universe{..} =
-        (checkCollisionsWithMe aLoc aRad bullets)
-        || (wallCollision aLoc (aRad / 2))
-        || ((shieldOn ship) && (twoCirclesCollide aLoc aRad sLoc sRad))
+        (checkCollisionsWithMe (astLoc ast) (astRad ast) bullets)
+        || (wallCollision (astLoc ast) ((astRad ast) / 2))
+        || collidesWithShip ships (astLoc ast) (astRad ast)
         where
-            aLoc = astLoc ast
-            aRad = astRad ast
-            sLoc = shipLoc ship
-            sRad = shieldRad ship
+            collidesWithShip :: [Ship] -> Position -> Radius -> Bool
+            collidesWithShip [] _ _ = False
+            collidesWithShip (s:xs) aLoc aRad
+                | ((shieldOn s) && (twoCirclesCollide aLoc aRad sLoc sRad)) = True
+                | otherwise = collidesWithShip xs aLoc aRad
+                where
+                    sLoc = shipLoc s
+                    sRad = shieldRad s
 
     kill ast = ast {
         astAlive = False

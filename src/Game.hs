@@ -3,8 +3,10 @@
 
 module Game
 (
+    GameMode(..),
     GameState(..),
-    updateGame
+    updateGame,
+    getGameState
 ) where
 
 import Types
@@ -21,9 +23,15 @@ import GHC.Generics (Generic)
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import Network.WebSockets
 
+
+data GameMode =
+    Single GameState
+    | Cooperative GameState
+
 --add alternative states here, like 'pause', 'settings' and so on
 data GameState =
-    InGame Universe
+    InGame [Universe]
+    | Waiting Int
     | GameOver deriving (Generic, Read, Show)
 
 instance ToJSON GameState
@@ -34,11 +42,21 @@ instance WebSocketsData GameState where
     toLazyByteString   = BL8.pack . show
 
 
-generateAstPosition :: Ship -> [Float] -> Position
-generateAstPosition ship (x:y:xs)
-    | twoCirclesCollide (shipLoc ship) (shipSize ship) (x, y) 50 =
-        generateAstPosition ship xs
+getGameState :: GameMode -> GameState
+getGameState (Single gs) = gs
+getGameState (Cooperative gs) = gs
+
+
+generateAstPosition :: [Ship] -> [Float] -> Position
+generateAstPosition ships (x:y:xs)
+    | checkForAllShips ships (x, y) = generateAstPosition ships xs
     | otherwise = (x, y)
+    where
+        checkForAllShips :: [Ship] -> Position -> Bool
+        checkForAllShips [] _ = False
+        checkForAllShips (s:ss) pos =
+            twoCirclesCollide (shipLoc s) (shipSize s) pos 50
+            || checkForAllShips ss pos
 -- TODO: should be handling this case more appropriately
 generateAstPosition _ [] = (0, 0)
 generateAstPosition _ [_] = (0, 0)
@@ -54,7 +72,7 @@ addAsteroid u@Universe{..} =
         else u
     where
         genX = mkStdGen (round (foldr (+) 1 (map (fst . astLoc) asteroids)))
-        randLoc = generateAstPosition ship (randomRs ((-200)::Float, 200::Float) genX)
+        randLoc = generateAstPosition ships (randomRs ((-200)::Float, 200::Float) genX)
         genY = mkStdGen (round (foldr (+) 1 (map (snd . astLoc) asteroids)))
         randSpeed = take 2 (randomRs ((-70)::Float, 70::Float) genY)
         randVel = (head randSpeed, head (tail randSpeed))
@@ -68,7 +86,7 @@ addAsteroid u@Universe{..} =
 checkCollisions :: Universe -> Universe
 checkCollisions u@Universe{..} =
     u {
-        ship = checkCollisionsWithOthers u ship,
+        ships = map (checkCollisionsWithOthers u) ships,
         asteroids = map (checkCollisionsWithOthers u) asteroids,
         bullets = map (checkCollisionsWithOthers u) bullets
     }
@@ -77,7 +95,7 @@ checkCollisions u@Universe{..} =
 moveAllObjects :: Time -> Universe -> Universe
 moveAllObjects sec u@Universe{..} =
     u {
-        ship = move sec ship,
+        ships = map (move sec) ships,
         asteroids = map (move sec) asteroids,
         bullets = map (move sec) bullets
     }
@@ -94,18 +112,34 @@ delObjects u@Universe{..} =
 updateObjects :: Universe -> Universe
 updateObjects u@Universe{..} =
     u {
-        ship = updateShip ship
+        ships = map updateShip ships
     }
 
 
-updateGame :: Time -> GameState -> GameState
-updateGame _ GameOver = GameOver
-updateGame sec (InGame u@Universe{..})
-    | not $ shipAlive ship = GameOver
-    | otherwise =
-        InGame $ chain $ u {
-            step = step + 1
-        }
+updateGame :: Time -> GameMode -> GameMode
+updateGame sec (Single gs) = Single $ updateGameSingle sec gs
     where
+        updateGameSingle :: Time -> GameState -> GameState
+        updateGameSingle _ GameOver = GameOver
+        updateGameSingle _ (InGame (u@Universe{..}:_))
+            | not $ all shipAlive ships = GameOver
+            | otherwise =
+                InGame $ [chain $ u {
+                    step = step + 1
+                }]
+        updateGameSingle _ _gs = _gs
+        chain =
+            (addAsteroid . delObjects . checkCollisions . updateObjects . moveAllObjects sec)
+updateGame sec (Cooperative gs) = Cooperative $ updateGameCooperative sec gs
+    where
+        updateGameCooperative :: Time -> GameState -> GameState
+        updateGameCooperative _ GameOver = GameOver
+        updateGameCooperative _ (InGame (u@Universe{..}:_))
+            | not $ all shipAlive ships = GameOver
+            | otherwise =
+                InGame $ [chain $ u {
+                    step = step + 1
+                }]
+        updateGameCooperative _ _gs = _gs
         chain =
             (addAsteroid . delObjects . checkCollisions . updateObjects . moveAllObjects sec)

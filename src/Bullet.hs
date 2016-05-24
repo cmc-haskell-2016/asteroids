@@ -22,7 +22,8 @@ data Bullet = Bullet {
     bulAng :: Degree,
     bulRad :: Radius,
     bulVel :: Speed,
-    bulAlive :: Bool
+    bulAlive :: Bool,
+    bulColor :: Int
 } deriving (Show, Eq, Read, Generic)
 
 instance ToJSON Bullet
@@ -40,7 +41,8 @@ initBullet s =
         bulRad = 3,
         bulAng = shipAng s,
         bulAlive = True,
-        bulVel = velang
+        bulVel = velang,
+        bulColor = shipColor s
     }
     where
         yvel = cos ((shipAng s) * pi / 180)

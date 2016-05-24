@@ -25,16 +25,17 @@ main = do
     let ip = head argv
     let http_port = (read . head . tail) argv :: Int
 
-    c <- mkClientWithManager ip http_port
-    response <- runExceptT (new c)
-    new_game <- getServerResponse response
-
-    shared <- newTVarIO new_game
-
     WS.runClient ip http_port "/service/open_socket" $ \socket -> do
-        let new_state = (ClientState shared socket c)
         putStrLn "Connection successful"
+
+        c <- mkClientWithManager ip http_port
+        response <- runExceptT (new c)
+        new_game <- getServerResponse response
+        shared <- newTVarIO new_game
+        let new_state = (ClientState shared socket c)
+
         _ <- forkIO (handleUpdates new_state)
+
         playIO window background fps new_state renderPicIO handleKeys getUpdatedGameState
     putStrLn "Finished"
 
