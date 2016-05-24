@@ -73,20 +73,15 @@ newGame ss = do
         modeHandler n (Cooperative gs) = modeHandlerCooperative n gs
 
         modeHandlerSingle :: Int -> GameState -> GameMode
-        modeHandlerSingle 1 GameOver = Single $ InGame [initUniverse 1]
-        modeHandlerSingle _ GameOver = Single $ GameOver
-        modeHandlerSingle 1 (InGame _) = Single $ InGame [initUniverse 1]
-        modeHandlerSingle _ (InGame _) = Single $ GameOver
-        modeHandlerSingle 1 (Waiting _) = Single $ InGame [initUniverse 1]
-        modeHandlerSingle _ (Waiting _) = Single $ GameOver
+        modeHandlerSingle 1 _ = Single $ InGame [initUniverse 1]
+        modeHandlerSingle _ _ = Single $ GameOver
 
         modeHandlerCooperative :: Int -> GameState -> GameMode
-        modeHandlerCooperative n (InGame _) = defaultCooperative n
-        modeHandlerCooperative n (Waiting _) = defaultCooperative n
-        modeHandlerCooperative n GameOver = defaultCooperative n
+        modeHandlerCooperative n _ = defaultCooperative n
 
         defaultCooperative :: Int -> GameMode
         defaultCooperative n
+            | n > 2 = Cooperative $ GameOver
             | n == 2 = Cooperative $ InGame [initUniverse 2]
             | otherwise = Cooperative $ Waiting (2 - n)
 
@@ -128,7 +123,6 @@ checkCloseRequest Finish ss client = atomically $ do
     writeTVar ss shared {
         clients = updated_clients
     }
-    return ()
 checkCloseRequest _ _ _ = return ()
 
 
@@ -216,9 +210,11 @@ periodicUpdates ss = forever $ do
         }
     shared <- readTVarIO ss
     updated_clients <- filterM (sendGameToClient (gs shared)) (clients shared)
-    atomically $ writeTVar ss shared {
-        clients = updated_clients
-    }
+    atomically $ do
+        shared1 <- readTVar ss
+        writeTVar ss shared1 {
+            clients = updated_clients
+        }
     where
         gs = (getGameState . game)
         sendGameToClient :: GameState -> Client -> IO Bool

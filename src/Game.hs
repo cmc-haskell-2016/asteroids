@@ -26,7 +26,7 @@ import Network.WebSockets
 
 data GameMode =
     Single GameState
-    | Cooperative GameState
+    | Cooperative GameState deriving (Show)
 
 --add alternative states here, like 'pause', 'settings' and so on
 data GameState =
