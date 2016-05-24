@@ -15,7 +15,6 @@ bulletSpeed = 300
 
 data Bullet = Bullet {
     bulLoc :: Position,
-    bulAng :: Degree,
     bulRad :: Radius,
     bulVel :: Speed,
     bulAlive :: Bool
@@ -28,7 +27,6 @@ initBullet s =
     Bullet {
         bulLoc = pos,
         bulRad = 3,
-        bulAng = shipAng s,
         bulAlive = True,
         bulVel = velang
     }

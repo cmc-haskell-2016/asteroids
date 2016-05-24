@@ -8,7 +8,6 @@ import Types
 
 import System.Random
 
-
 data Universe = Universe {
     step :: Step,
     ship :: Ship,
@@ -26,18 +25,18 @@ data Universe = Universe {
 initUniverseIO :: IO Universe
 initUniverseIO = do
     gen <- getStdGen
-    randLoc <- return (randomRs ((-200)::Float, 200::Float) gen)
-    randVel <- return (randomRs ((-70)::Float, 70::Float) gen)
-    randRad <- return (randomRs (10::Float, 50::Float) gen) 
+    loc <- return (randomRs ((-200)::Float, 200::Float) gen)
+    vel <- return (randomRs ((-70)::Float, 70::Float) gen)
+    rad <- return (randomRs (10::Float, 50::Float) gen) 
     return Universe {
         step = 0,
         ship = initShip,
         asteroids = [],
         ufos = [],
         bullets = [],
-        randLoc = randLoc,
-        randVel = randVel,
-        randRad = randRad,
+        randLoc = loc,
+        randVel = vel,
+        randRad = rad,
         level = 1,
         bigBoss = Nothing,
         godMode = False

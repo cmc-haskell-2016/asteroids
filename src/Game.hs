@@ -19,7 +19,6 @@ import Bullet
 import Universe
 import Collisions
 
-import System.Random
 import Data.Maybe
 
 --add alternative states here, like 'pause', 'settings' and so on
@@ -214,6 +213,8 @@ updateObjects u@Universe{..} =
         ship = updateShip ship
     }
 
+addObjects :: Universe -> Universe
+addObjects u = addAsteroid $ addUFO $ addBoss u 
 
 
 updateGame :: Time -> GameState -> GameState
@@ -226,4 +227,4 @@ updateGame sec (InGame u@Universe{..})
         }
     where
         chain =
-            (changeLevel . addAsteroid . addUFO . addBoss . shooting . delObjects . updateObjects . checkCollisions . moveAllObjects sec)
+            (changeLevel . addObjects . shooting . delObjects . updateObjects . checkCollisions . moveAllObjects sec)

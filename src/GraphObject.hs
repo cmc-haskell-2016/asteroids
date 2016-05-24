@@ -56,13 +56,13 @@ instance GraphObject Ship where
         | otherwise = obj
 
     shouldKill s u@Universe{..} =
-        (((checkCollisionsWithMe sLoc 20 bullets) && (not (shieldOn ship)))
+        (((checkCollisionsWithMe sLoc 20 bullets) && (not (shieldOn s)))
         || wallCollision sLoc 20
-        || ((checkCollisionsWithMe sLoc 5 asteroids) && (not (shieldOn ship)))
-        || ((checkCollisionsWithMe sLoc 5 ufos) && (not (shieldOn ship))))
+        || ((checkCollisionsWithMe sLoc 5 asteroids) && (not (shieldOn s)))
+        || ((checkCollisionsWithMe sLoc 5 ufos) && (not (shieldOn s))))
         && not godMode
         where
-            sLoc = shipLoc ship
+            sLoc = shipLoc s
 
     kill ship = ship {
         shipAlive = False

@@ -4,10 +4,8 @@ import Interface
 import Rendering
 import Game
 import Types
-import Graphics.Gloss.Interface.Pure.Game
-import Graphics.Gloss.Interface.IO.Game
-import System.Random
 
+import Graphics.Gloss.Interface.IO.Game
 
 background :: Color
 background = makeColorI 25 25 112 0
