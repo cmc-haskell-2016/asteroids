@@ -19,7 +19,8 @@ data Universe = Universe {
     randVel :: [Float],
     randRad :: [Float],
     level :: Int,
-    bigBoss :: Maybe Boss
+    bigBoss :: Maybe Boss,
+    godMode :: Bool
 }
 
 initUniverseIO :: IO Universe
@@ -38,6 +39,7 @@ initUniverseIO = do
         randVel = randVel,
         randRad = randRad,
         level = 1,
-        bigBoss = Nothing
+        bigBoss = Nothing,
+        godMode = False
     }
 

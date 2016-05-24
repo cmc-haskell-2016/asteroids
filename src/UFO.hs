@@ -29,7 +29,7 @@ bossRad :: Radius
 bossRad = 80
 
 bossSpeed :: Float
-bossSpeed = 10
+bossSpeed = 30
 
 data Boss = Boss {
     bossLoc :: Position,

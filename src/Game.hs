@@ -87,14 +87,23 @@ changeLevel u@Universe{..} =
 addBoss :: Universe -> Universe
 addBoss u@Universe{..} 
     | (isNothing bigBoss) && (level == 4) = u {
+        randLoc = drop 2 randLoc,
+        randVel = drop 2 randVel,
         bigBoss = Just Boss {
-            bossLoc = (100, 0),
-            bossVel = (bossSpeed * 10, bossSpeed),
+            bossLoc = newLoc,
+            bossVel = newVel,
             bossStage = 100,
             bossAlive = True
-        }
+        }        
     }
     | otherwise = u 
+    where
+        newLoc = generateObjPosition ship randLoc
+        randSpeed = take 2 randVel
+        (xn, yn) = (head randSpeed, head (tail randSpeed))
+        norm = sqrt (xn * xn + yn * yn)
+        newVel = (xn / norm * bossSpeed, yn / norm * bossSpeed)
+
 
 shootBoss :: Maybe Boss -> Universe -> Universe
 shootBoss Nothing u = u

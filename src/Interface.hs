@@ -74,5 +74,13 @@ handleKeys (EventKey (Char '4') Up _ _) (InGame u@Universe{..}) = return
     (InGame u {
         level = 4
     })
+handleKeys (EventKey (Char 'o') Up _ _) (InGame u@Universe{..}) = return
+    (InGame u {
+        godMode = True
+    })
+handleKeys (EventKey (Char 'p') Up _ _) (InGame u@Universe{..}) = return
+    (InGame u {
+        godMode = False
+    })
 handleKeys (EventKey (SpecialKey KeyEsc) Down _ _) _ = exitSuccess
 handleKeys _ gs = return gs
