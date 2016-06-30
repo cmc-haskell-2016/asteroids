@@ -7,25 +7,25 @@
 
 ## Building
 
-Clone this repo and build the project with the Stack:<br />
+Clone this repo and build the project with the Stack: <br />
 
 ```
 git clone https://github.com/cmc-haskell-2016/asteroids.git<br />
-cd asteroids<br />
-stack setup<br />
+cd asteroids
+stack setup
 ```
 
 The game consists of server and clients apps. The one should launch the server
 and connect using the client.<br />
 ```
-stack build && stack exec server "port" "game mode"<br />
-stack build && stack exec client "ip" "port"<br />
+stack build && stack exec server "port" "game mode"
+stack build && stack exec client "ip" "port"
 ```
 
 You can use the scripts coming with the project as follows:<br />
 ```
-./server.sh "port" "game mode"<br />
-./client.sh "ip" "port"<br />
+./server.sh "port" "game mode"
+./client.sh "ip" "port"
 ```
 
 ## Game
@@ -40,10 +40,10 @@ The server can process only one game session at once.<br />
 
 ## Controls
 
-<b>Up</b> - accelerate<br />
-<b>Left</b> - rotate left<br />
-<b>Right</b> - rotate right<br />
-<b>S</b> - enable shield<br />
-<b>Space</b> - shoot<br />
-<b>R</b> - restart game<br />
-<b>Esc</b> - quit<br />
+Up - accelerate<br />
+Left - rotate left<br />
+Right - rotate right<br />
+S - enable shield<br />
+Space - shoot<br />
+R - restart game<br />
+Esc - quit<br />
