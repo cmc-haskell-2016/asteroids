@@ -31,7 +31,7 @@ You can use the scripts coming with the project as follows:<br />
 ## Game
 
 The game mode is either single or cooperative. Cooperative needs exactly 2
-players. In single mode you need to surviving by shooting the asteroids. If you
+players. In single mode you need to survive by shooting the asteroids. If you
 bump into one you die. The same happens if you leave the playing area. You have
 special shield that destroys asteroids when enabled.
 In the cooperative you do pretty much the same but together with you friend.<br />
