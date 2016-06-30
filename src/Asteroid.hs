@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Asteroid
 (
     Asteroid(..)
@@ -5,6 +7,10 @@ module Asteroid
 
 import Types
 
+import Data.Aeson
+import qualified Data.ByteString.Lazy.Char8 as BL8
+import Network.WebSockets
+import GHC.Generics (Generic)
 
 data Asteroid = Asteroid {
     astLoc :: Position,
@@ -12,5 +18,11 @@ data Asteroid = Asteroid {
     astRad :: Radius,
     astVel :: Speed,
     astAlive :: Bool
-} deriving (Show, Eq)
+} deriving (Show, Eq, Read, Generic)
 
+instance ToJSON Asteroid
+instance FromJSON Asteroid
+
+instance WebSocketsData Asteroid where
+    fromLazyByteString = read . BL8.unpack
+    toLazyByteString   = BL8.pack . show

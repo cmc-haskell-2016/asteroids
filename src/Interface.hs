@@ -1,13 +1,33 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Interface where
 
-import Game
-import Ship
-import Bullet
+import ClientSide
+import Collisions
 
+-- import qualified Data.Text as T
 import Graphics.Gloss
-import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss.Interface.IO.Game
+import qualified Network.WebSockets as WS
+import qualified Data.ByteString.Lazy.Char8 as BL8
+import System.Exit (exitSuccess)
 
+
+data Action =
+    EnableAcceleration
+    | DisableAcceleration
+    | RotateLeft
+    | RotateRight
+    | StopRotatingLeft
+    | StopRotatingRight
+    | EnableShield
+    | DisableShield
+    | Shoot
+    | Finish deriving (Read, Show)
+
+instance WS.WebSocketsData Action where
+    fromLazyByteString = read . BL8.unpack
+    toLazyByteString   = BL8.pack . show
 
 offsetX :: Int
 offsetX = 500
@@ -15,45 +35,34 @@ offsetX = 500
 offsetY :: Int
 offsetY = 100
 
-
 window :: Display
 window = InWindow "ASTEROID BATTLE by Team Stolyarov" (width, height) (offsetX, offsetY)
 
-handleKeys :: Event -> GameState -> GameState
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) (InGame u@Universe{..}) =
-    InGame u {
-        ship = ship {shipAccel = True}
-    }
-handleKeys (EventKey (SpecialKey KeyUp) Up _ _) (InGame u@Universe{..}) =
-    InGame u {
-        ship = ship {shipAccel = False}
-    }
-handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) (InGame u@Universe{..}) =
-    InGame u {
-        ship = ship {rotation = (rotation ship) - 5}
-    }
-handleKeys (EventKey (SpecialKey KeyRight) Down _ _) (InGame u@Universe{..}) =
-    InGame u {
-        ship = ship {rotation = (rotation ship) + 5}
-    }
-handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) (InGame u@Universe{..}) =
-    InGame u {
-        ship = ship {rotation = (rotation ship) + 5}
-    }
-handleKeys (EventKey (SpecialKey KeyRight) Up _ _) (InGame u@Universe{..}) =
-    InGame u {
-        ship = ship {rotation = (rotation ship) - 5}
-    }
-handleKeys (EventKey (Char 's') Down _ _) (InGame u@Universe{..}) =
-    InGame u {
-        ship = ship {shieldOn = True}
-    }
-handleKeys (EventKey (Char 's') Up _ _) (InGame u@Universe{..}) =
-    InGame u {
-        ship = ship {shieldOn = False}
-    }
-handleKeys (EventKey (SpecialKey KeySpace) Down _ _) (InGame u@Universe{..}) =
-    InGame u {
-        bullets = (initBullet ship) : bullets
-    }
-handleKeys _ gs = gs
+
+sendAction :: Action -> ClientState-> IO ClientState
+-- TODO
+sendAction action cs = do
+    WS.sendBinaryData (conn cs) action
+    return cs
+
+finish :: ClientState -> IO ClientState
+finish cs = do
+    _ <- sendAction Finish cs
+    -- WS.sendClose (conn cs) ("Wanna quit" :: T.Text)
+    _ <- exitSuccess
+    return cs
+
+
+handleKeys :: Event -> ClientState -> IO ClientState
+handleKeys (EventKey (SpecialKey KeyEsc) Down _ _) = finish
+handleKeys (EventKey (SpecialKey KeyUp) Down _ _) = sendAction EnableAcceleration
+handleKeys (EventKey (SpecialKey KeyUp) Up _ _) = sendAction DisableAcceleration
+handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) = sendAction RotateLeft
+handleKeys (EventKey (SpecialKey KeyRight) Down _ _) = sendAction RotateRight
+handleKeys (EventKey (SpecialKey KeyLeft) Up _ _) = sendAction StopRotatingLeft
+handleKeys (EventKey (SpecialKey KeyRight) Up _ _) = sendAction StopRotatingRight
+handleKeys (EventKey (Char 's') Down _ _) = sendAction EnableShield
+handleKeys (EventKey (Char 's') Up _ _) = sendAction DisableShield
+handleKeys (EventKey (Char 'r') Up _ _) = restartGame
+handleKeys (EventKey (SpecialKey KeySpace) Down _ _) = sendAction Shoot
+handleKeys _ = return

@@ -2,7 +2,7 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration.html
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: lts-5.5
+resolver: lts-5.9
 
 # Local packages, usually specified by relative directory name
 packages:
@@ -17,6 +17,11 @@ extra-deps:
 - ObjectName-1.1.0.0
 - OpenGLRaw-2.5.3.0
 - random-1.1
+- servant-0.5
+- servant-client-0.5
+- servant-server-0.5
+- servant-docs-0.5
+- control-monad-omega-0.3.1
 
 # Override default flag values for local packages and extra-deps
 flags: {}
